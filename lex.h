@@ -1,0 +1,75 @@
+#ifndef _LEX_H_
+#define _LEX_H_
+
+#include "tdf.h"
+#include "string.h"
+
+
+
+typedef enum Token_Type Token_Type;
+enum Token_Type  {
+    TOKEN_TYPE_ERROR,
+
+    TOKEN_TYPE_DECREMENT,
+    TOKEN_TYPE_TILDE,
+    TOKEN_TYPE_NEGATE,
+
+    TOKEN_TYPE_PLUS,
+    TOKEN_TYPE_ASTERIX,
+    TOKEN_TYPE_FORWARD_SLASH,
+    TOKEN_TYPE_PERCENT,
+
+    TOKEN_TYPE_AMPERSAND,
+    TOKEN_TYPE_VERTICAL_BAR,
+    TOKEN_TYPE_CARROT,
+    TOKEN_TYPE_LEFT_SHIFT,
+    TOKEN_TYPE_RIGHT_SHIFT,
+
+    TOKEN_TYPE_PLUS_EQUAL,
+    TOKEN_TYPE_ASTERIX_EQUAL,
+    TOKEN_TYPE_FORWARD_SLASH_EQUAL,
+    TOKEN_TYPE_PERCENT_EQUAL,
+
+    TOKEN_TYPE_AMPERSAND_EQUAL,
+    TOKEN_TYPE_VERTICAL_BAR_EQUAL,
+    TOKEN_TYPE_CARROT_EQUAL,
+    TOKEN_TYPE_LEFT_SHIFT_EQUAL,
+    TOKEN_TYPE_RIGHT_SHIFT_EQUAL,
+
+    TOKEN_TYPE_EXCLAMATION,
+    TOKEN_TYPE_EQUAL_SIGN,
+    TOKEN_TYPE_LESS_THAN,
+    TOKEN_TYPE_LESS_THAN_EQUAL_TO,
+    TOKEN_TYPE_EQUAL_TO,
+    TOKEN_TYPE_NOT_EQUAL_TO,
+    TOKEN_TYPE_GREATER_THAN,
+    TOKEN_TYPE_GREATER_THAN_EQUAL_TO,
+    TOKEN_TYPE_LOGICAL_OR,
+    TOKEN_TYPE_LOGICAL_AND,
+
+    TOKEN_TYPE_NUMBER,
+    TOKEN_TYPE_IDENTIFIER,
+    TOKEN_TYPE_OPEN_BRACKET,
+    TOKEN_TYPE_CLOSE_BRACKET,
+    TOKEN_TYPE_OPEN_PAREN,
+    TOKEN_TYPE_CLOSE_PAREN,
+    TOKEN_TYPE_SEMICOLON,
+};
+
+
+typedef struct Token Token;
+struct Token {
+    int col;
+    int row;
+    Token_Type type;
+    String identifier;
+    String line;
+    int constant;
+};
+
+Token * lex_program(String path);
+void print_tokens(Token *tokens) ;
+
+
+#endif // _LEX_H_
+
