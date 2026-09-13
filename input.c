@@ -1,9 +1,8 @@
-//typedef int aa;
 
 int main(void) {
-    //int b += 3;
-    int b = 3;
-    b = b *3;
-    return b;
+    int a = 2;
+    a + 3 = 4;
+    return a;
+
 }
 

@@ -282,7 +282,7 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Nod
         Tac_Node_Operand src1 = create_tac_instructions( tac_instructions, parse_expression->expression.binop.left);
         Tac_Node_Operand src2 = create_tac_instructions( tac_instructions, parse_expression->expression.binop.right);
 
-            Tac_Node_Operand dest = ZERO_STRUCT;
+        Tac_Node_Operand dest = ZERO_STRUCT;
         if (tac_node.type == TAC_NODE_INSTRUCTION_COPY) {
             tac_node.instruction.copy.src = src2;
             tac_node.instruction.copy.dest = src1;
@@ -410,6 +410,54 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Nod
         //             FAIL_MSG( "Tac operand fail");
         // }
 
+    }else if (parse_expression->type == PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT) {
+        Parse_Node add = {0};
+        add.type = PARSE_TYPE_EXP_BINOP_ADD;
+        add.expression.binop.left=  parse_expression->expression.factor.increment_value;
+        Parse_Node one = {0};
+        one.type = PARSE_TYPE_EXP_FACTOR_INT;
+        one.expression.factor.int_value = 1;
+        array_append(&add.expression.binop.right, one);
+        Parse_Node equal = {0};
+        equal.type = PARSE_TYPE_EXP_BINOP_EQUAL;
+        equal.expression.binop.left = parse_expression->expression.factor.increment_value;
+        array_append(&equal.expression.binop.right, add);
+        create_tac_instructions(tac_instructions, &equal);
+
+        Tac_Node_Operand operand = parse_var_to_ir(parse_expression->expression.factor.increment_value);
+        return operand;
+
+    }else if (parse_expression->type == PARSE_TYPE_EXP_FACTOR_POST_INCREMENT) {
+
+        Tac_Node_Operand operand = parse_var_to_ir(parse_expression->expression.factor.increment_value);
+        Tac_Node_Operand rv = ZERO_STRUCT;
+        rv.type =TAC_NODE_OPERAND_VAR; 
+        rv.int_value = var_name_index;
+        rv.identifier = str_join_str_str(operand.identifier, str_create_from_cstr(var_name));
+        str_append_int( &rv.identifier, var_name_index);
+        var_name_index += 1;
+
+        Tac_Node copy = {0};
+        copy.type = TAC_NODE_INSTRUCTION_COPY;
+        copy.instruction.copy.src = operand;
+        copy.instruction.copy.dest = rv;
+        array_append(tac_instructions, copy);
+
+
+        Parse_Node add = {0};
+        add.type = PARSE_TYPE_EXP_BINOP_ADD;
+        add.expression.binop.left=  parse_expression->expression.factor.increment_value;
+        Parse_Node one = {0};
+        one.type = PARSE_TYPE_EXP_FACTOR_INT;
+        one.expression.factor.int_value = 1;
+        array_append(&add.expression.binop.right, one);
+        Parse_Node equal = {0};
+        equal.type = PARSE_TYPE_EXP_BINOP_EQUAL;
+        equal.expression.binop.left = parse_expression->expression.factor.increment_value;
+        array_append(&equal.expression.binop.right, add);
+        create_tac_instructions(tac_instructions, &equal);
+
+        return rv;
     }else if (parse_expression->type == PARSE_TYPE_EXP_FACTOR_VAR) {
         Tac_Node_Operand operand = parse_var_to_ir(parse_expression);
 

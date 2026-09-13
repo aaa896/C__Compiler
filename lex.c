@@ -38,6 +38,8 @@ void print_tokens(Token *tokens) {
             printf("Tilde ~\n");
         } else if (tokens[i].type == TOKEN_TYPE_PLUS) {
             printf("Plus +\n");
+        } else if (tokens[i].type == TOKEN_TYPE_INCREMENT) {
+            printf("Increment ++\n");
         } else if (tokens[i].type == TOKEN_TYPE_ASTERIX) {
             printf("Asterix *\n");
         } else if (tokens[i].type == TOKEN_TYPE_FORWARD_SLASH) {
@@ -223,8 +225,11 @@ Token * lex_program( String path)
             if (peek_char(&program, i + 1, '=')) {
                 token.type = TOKEN_TYPE_PLUS_EQUAL;
                 i += 1;
+            }else if (peek_char(&program, i + 1, '+')) {
+                token.type = TOKEN_TYPE_INCREMENT;
+                i += 1;
             } else {
-            token.type = TOKEN_TYPE_PLUS;
+                token.type = TOKEN_TYPE_PLUS;
             }
             array_append(&tokens, token);
         }else if (program.data[i] == '-') {

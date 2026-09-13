@@ -95,6 +95,9 @@ enum Parse_Type  {
     PARSE_TYPE_EXP_FACTOR_INT,
     PARSE_TYPE_EXP_FACTOR_VAR,
 
+    PARSE_TYPE_EXP_FACTOR_POST_INCREMENT,
+    PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT,
+
     PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE,
     PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT,
     PARSE_TYPE_EXP_FACTOR_UNOP_LOGICAL_NOT,
@@ -137,6 +140,7 @@ struct Parse_Node  {
         struct {
             struct {
                 union {
+                    Parse_Node *increment_value;
                     Parse_Node *unop_next;
                     Parse_Node *expression;
                 };

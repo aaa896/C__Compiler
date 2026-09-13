@@ -5,6 +5,12 @@
 #include "dynamic_array.h"
 #include "string.h"
 
+char *invalid_var_names[] = {
+    "int" ,
+    "void",
+    "return",
+};
+
 int peek_token(Token *tokens, int token_index, Token_Type type) ;
 void parse_expression(Parse_Node **expression_root, Var_Table *global_table, Var_Table *table, Token *tokens, int *token_index, int min_precedence) ;
 
@@ -72,6 +78,18 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
         printf(" %d", node->expression.factor.int_value);
         printf("\n");
 
+    }else if (node->type == PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT) {
+        print_char_n(' ', start_padding);
+        printf("Pre Increment ++(\n");
+        print_parse_nodes_2(node->expression.factor.increment_value, start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(" )\n ");
+    }else if (node->type == PARSE_TYPE_EXP_FACTOR_POST_INCREMENT) {
+        print_char_n(' ', start_padding);
+        printf("Post Increment ++(\n");
+        print_parse_nodes_2(node->expression.factor.increment_value, start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(" )\n ");
     }else if (node->type == PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE) {
         print_char_n(' ', start_padding);
         printf("Unop Negate -(\n");
@@ -311,7 +329,7 @@ int peek_token(Token *tokens, int token_index, Token_Type type)
 }
 
 
-void parse_factor(Parse_Node **factor_root, Var_Table *global_table, Var_Table *var_table, Token *tokens, int *token_index)
+void parse_factor(Parse_Node **factor_root,  Var_Table *global_table, Var_Table *var_table, Token *tokens, int *token_index)
 {
     if (peek_token(tokens, *token_index, TOKEN_TYPE_NUMBER)) {
         Parse_Node factor = ZERO_STRUCT;
@@ -331,17 +349,58 @@ void parse_factor(Parse_Node **factor_root, Var_Table *global_table, Var_Table *
 
     }else if (peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
 
+        bool post_increment = false;
+        {
+            ASSERT(*token_index < get_array_count(tokens) -1);
+            Token increment = tokens[*token_index + 1];
+            post_increment = increment.type == TOKEN_TYPE_INCREMENT;
+        }
+
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_VAR;
         factor.expression.factor.var_name = tokens[*token_index].identifier;
         int var_table_index = get_var_table_index(var_table, factor.expression.factor.var_name);
         ASSERT(var_table_index != -1);
         factor.expression.factor.int_value = var_table_index;
-        array_append(factor_root, factor);
+
+        if (post_increment) {
+            Parse_Node post = {0};
+            post.type = PARSE_TYPE_EXP_FACTOR_POST_INCREMENT;
+            array_append(&post.expression.factor.increment_value, factor);
+            array_append(factor_root, post);
+            (*token_index)++;
+        } else {
+            array_append(factor_root, factor);
+        }
         (*token_index)++;
 
+    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_INCREMENT)) {
 
+        bool pre_increment = false;
+        {
+            ASSERT(*token_index < get_array_count(tokens) -1);
+            String var_str = tokens[*token_index + 1].identifier;
+            int var_table_index = get_var_table_index(var_table, var_str);
+            if (var_table_index != -1) {
+                pre_increment = true;
+            }
+        }
+        ASSERT(pre_increment);
+        *(token_index) +=1;
 
+        Parse_Node pre = {0};
+        pre.type = PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT;
+
+        Parse_Node factor = ZERO_STRUCT;
+        factor.type = PARSE_TYPE_EXP_FACTOR_VAR;
+        factor.expression.factor.var_name = tokens[*token_index].identifier;
+        int var_table_index = get_var_table_index(var_table, factor.expression.factor.var_name);
+        ASSERT(var_table_index != -1);
+        factor.expression.factor.int_value = var_table_index;
+
+        array_append(&pre.expression.factor.increment_value, factor );
+        array_append(factor_root, pre);
+        *(token_index) +=1;
     }else if (peek_token(tokens, *token_index, TOKEN_TYPE_TILDE)) {
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT;
@@ -366,7 +425,7 @@ void parse_factor(Parse_Node **factor_root, Var_Table *global_table, Var_Table *
         (*token_index)++;
         array_append(factor_root, factor);
     }else {
-        FAIL_MSG("expected exp number type\n");
+        FAIL_MSG(" Uknown factor\n");
     }
 
 }
@@ -527,6 +586,7 @@ void parse_expression(Parse_Node **expression_root, Var_Table *global_table, Var
             Parse_Node *right = 0;
             *token_index +=1;
             if (binop_type == PARSE_TYPE_EXP_BINOP_EQUAL) {
+                ASSERT(left->type == PARSE_TYPE_EXP_FACTOR_VAR);
                 parse_expression(&right,global_table, var_table, tokens, token_index, binop_precedence );
             } else {
                 parse_expression(&right, global_table, var_table, tokens, token_index, binop_precedence + 1);
@@ -555,10 +615,7 @@ void parse_expression(Parse_Node **expression_root, Var_Table *global_table, Var
 
 void parse_statement(Parse_Node **statements, Var_Table *global_table, Var_Table *var_table, Token *tokens, int *token_index) 
 {
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
-        FAIL_MSG("expected identifier type\n");
-    }
-    if (str_equals_cstr(tokens[*token_index].identifier, "return")) {
+    if ( peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr(tokens[*token_index].identifier, "return")) {
 
         Parse_Node return_statement = ZERO_STRUCT;
         return_statement.type = PARSE_TYPE_STATEMENT_RETURN;
@@ -611,6 +668,10 @@ void parse_declaration( Parse_Node **block_item_root, Var_Table *global_table, V
     Parse_Node l_value = {0};
     l_value.type = PARSE_TYPE_EXP_FACTOR_VAR;
     l_value.expression.factor.var_name = str_clone( tokens[*token_index].identifier);
+    for (int i = 0; i < ARRAY_COUNT(invalid_var_names); ++i) {
+        if (str_equals_cstr(l_value.expression.factor.var_name, invalid_var_names[i]))
+            ASSERT(0);
+    }
     l_value.expression.factor.int_value = get_array_count(var_table->var_items);
     int var_table_index = get_var_table_index(var_table, l_value.expression.factor.var_name);
     if (var_table_index != -1)
