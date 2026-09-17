@@ -30,6 +30,10 @@ void print_tokens(Token *tokens) {
             printf("Close Bracket }\n");
         } else if (tokens[i].type == TOKEN_TYPE_SEMICOLON) {
             printf("Semicolon ;\n");
+        } else if (tokens[i].type == TOKEN_TYPE_COLON) {
+            printf("Colon :\n");
+        } else if (tokens[i].type == TOKEN_TYPE_QUESTION_MARK) {
+            printf("Question Mark ?\n");
         } else if (tokens[i].type == TOKEN_TYPE_DECREMENT) {
             printf("Decrement --\n");
         } else if (tokens[i].type == TOKEN_TYPE_NEGATE) {
@@ -76,25 +80,28 @@ void print_tokens(Token *tokens) {
             printf("Not Equal to != \n");
         } else if (tokens[i].type == TOKEN_TYPE_EXCLAMATION) {
             printf("Exclamation ! \n");
-
-        }else if (TOKEN_TYPE_PLUS_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_PLUS_EQUAL) {
             printf("Compound Plus +=\n");
-        }else if (TOKEN_TYPE_ASTERIX_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_ASTERIX_EQUAL) {
             printf("Compound multiply *= \n");
-        }else if (TOKEN_TYPE_FORWARD_SLASH_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_FORWARD_SLASH_EQUAL) {
             printf("Compound divide /=\n");
-        }else if (TOKEN_TYPE_PERCENT_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_PERCENT_EQUAL) {
             printf("Compound remainder %%= \n");
-        }else if (TOKEN_TYPE_AMPERSAND_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_AMPERSAND_EQUAL) {
             printf("Compound And &=\n");
-        }else if (TOKEN_TYPE_VERTICAL_BAR_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_VERTICAL_BAR_EQUAL) {
             printf("Compound Or |= \n");
-        }else if (TOKEN_TYPE_CARROT_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_CARROT_EQUAL) {
             printf("Compound Xor ^=\n");
-        }else if (TOKEN_TYPE_LEFT_SHIFT_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_LEFT_SHIFT_EQUAL) {
             printf("Compound Left shift <<= \n");
-        }else if (TOKEN_TYPE_RIGHT_SHIFT_EQUAL) {
+        }else if (tokens[i].type == TOKEN_TYPE_RIGHT_SHIFT_EQUAL) {
             printf("Compound Right shift >>=\n");
+        }else if (tokens[i].type == TOKEN_TYPE_IF) {
+            printf("If \n");
+        }else if (tokens[i].type == TOKEN_TYPE_ELSE) {
+            printf("Else \n");
         }else {
             ASSERT( 0 && "Uknown print token\n");
         }
@@ -139,6 +146,11 @@ Token * lex_program( String path)
             }
 
             token.identifier = str_create_from_sv( identifier);
+            if (str_equals_cstr(token.identifier, "if")) {
+                token.type = TOKEN_TYPE_IF;
+            } else if (str_equals_cstr(token.identifier, "else")) {
+                token.type = TOKEN_TYPE_ELSE;
+            }
             token.col = col;
             token.row = row;
             i   += token.identifier.size -1;
@@ -292,7 +304,7 @@ Token * lex_program( String path)
             if (peek_char(&program, i + 1, '|')) {
                 token.type = TOKEN_TYPE_LOGICAL_OR;
                 i +=1;
-            }if (peek_char(&program, i + 1, '=')) {
+            }else if (peek_char(&program, i + 1, '=')) {
                 token.type = TOKEN_TYPE_VERTICAL_BAR_EQUAL;
                 i += 1;
             }else {
@@ -360,6 +372,15 @@ Token * lex_program( String path)
             Token token = ZERO_STRUCT;
             token.type = TOKEN_TYPE_SEMICOLON;
             array_append(&tokens, token);
+        }else if (program.data[i] == ':') {
+            Token token = ZERO_STRUCT;
+            token.type = TOKEN_TYPE_COLON;
+            array_append(&tokens, token);
+        }else if (program.data[i] == '?') {
+            Token token = ZERO_STRUCT;
+            token.type = TOKEN_TYPE_QUESTION_MARK;
+            array_append(&tokens, token);
+
         }else  {
             FAIL_MSG( "Unhandled unknown token\n");
         }

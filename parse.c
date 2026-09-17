@@ -262,6 +262,49 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
         print_parse_nodes_2(node->expression.binop.right, start_padding + padding_increment, padding_increment);
         print_char_n(' ', start_padding);
         printf(" )\n ");
+    }else if (node->type == PARSE_TYPE_STATEMENT_IF) {
+        print_char_n(' ', start_padding);
+        printf("If  (\n ");
+        print_char_n(' ', start_padding);
+        printf("condition (\n");
+        print_parse_nodes_2(node->statement.if_statement.condition,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(")\n");
+        print_char_n(' ', start_padding);
+        printf("then (\n");
+        print_parse_nodes_2(node->statement.if_statement.then,  start_padding + padding_increment, padding_increment);
+                print_char_n(' ', start_padding);
+        printf(")\n");
+
+        if (node->statement.if_statement.else_clause) {
+        print_char_n(' ', start_padding);
+        printf("else (\n ");
+            print_parse_nodes_2(node->statement.if_statement.else_clause,  start_padding + padding_increment, padding_increment);
+                    print_char_n(' ', start_padding);
+        printf(")\n");
+
+        }
+        print_char_n(' ', start_padding);
+        printf(" )\n ");
+    }else if (node->type == PARSE_TYPE_EXP_CONDITIONAL) {
+        print_char_n(' ', start_padding);
+        printf("Conditional  (\n ");
+        print_char_n(' ', start_padding);
+        printf("condition (\n");
+        print_parse_nodes_2(node->expression.conditional.condition,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(")\n");
+        print_char_n(' ', start_padding);
+        printf("true (\n");
+        print_parse_nodes_2(node->expression.conditional.true_expression,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(")\n");
+
+        print_char_n(' ', start_padding);
+        printf("false (\n");
+        print_parse_nodes_2(node->expression.conditional.false_expression,  start_padding + padding_increment, padding_increment);
+                print_char_n(' ', start_padding);
+        printf(")\n");
     }else {
         FAIL_MSG("unknown parse  print\n");
     }
@@ -518,14 +561,12 @@ Parse_Type peek_binop_type(Token *tokens, int token_index)
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_OR;
     else if (peek_token(tokens, token_index, TOKEN_TYPE_EQUAL_SIGN) )
         binop_type = PARSE_TYPE_EXP_BINOP_EQUAL;
-
-
+    else if (peek_token(tokens, token_index, TOKEN_TYPE_QUESTION_MARK) )
+        binop_type = PARSE_TYPE_EXP_CONDITIONAL;
 
 
 
     return binop_type;
-
-
 }
 
 int get_precedence(Parse_Type binop)
@@ -568,6 +609,8 @@ int get_precedence(Parse_Type binop)
         return PRECEDENCE_GREATER_THAN_EQUAL_TO;
     if (binop == PARSE_TYPE_EXP_BINOP_EQUAL)
         return PRECEDENCE_EQUAL;
+    if (binop == PARSE_TYPE_EXP_CONDITIONAL)
+        return PRECEDENCE_CONDITIONAL;
     ASSERT(0);
 
 }
@@ -581,24 +624,36 @@ void parse_expression(Parse_Node **expression_root, Var_Table *global_table, Var
     Parse_Type binop_type = peek_binop_type(tokens, *token_index);
     if (binop_type != PARSE_TYPE_ERROR) {
         int binop_precedence  = get_precedence(binop_type);
-        //       if (binop_type != PARSE_TYPE_ERROR) {
         while ( binop_precedence >= min_precedence) {
             Parse_Node *right = 0;
+            Parse_Node *middle = 0;
             *token_index +=1;
             if (binop_type == PARSE_TYPE_EXP_BINOP_EQUAL) {
                 ASSERT(left->type == PARSE_TYPE_EXP_FACTOR_VAR);
+                parse_expression(&right,global_table, var_table, tokens, token_index, binop_precedence );
+            }else if (binop_type == PARSE_TYPE_EXP_CONDITIONAL) {
+                parse_expression(&middle,global_table, var_table, tokens, token_index, binop_precedence );
+                if (!peek_token(tokens, *token_index, TOKEN_TYPE_COLON))
+                    ASSERT(0);
+                (*token_index) +=1;
                 parse_expression(&right,global_table, var_table, tokens, token_index, binop_precedence );
             } else {
                 parse_expression(&right, global_table, var_table, tokens, token_index, binop_precedence + 1);
             }
 
             Parse_Node z = ZERO_STRUCT;
-            Parse_Node *binop = 0;
-            array_append(&binop, z);
-            binop->type = binop_type;
-            binop->expression.binop.left = left;
-            binop->expression.binop.right = right;
-            left = binop;
+            Parse_Node *nop = 0;
+            array_append(&nop, z);
+            nop->type = binop_type;
+            if (nop->type == PARSE_TYPE_EXP_CONDITIONAL) {
+                nop->expression.conditional.condition = left;
+                nop->expression.conditional.true_expression = middle;
+                nop->expression.conditional.false_expression = right;
+            } else {
+                nop->expression.binop.left = left;
+                nop->expression.binop.right = right;
+            }
+            left = nop;
 
 
             binop_type = peek_binop_type(tokens, *token_index);
@@ -606,8 +661,6 @@ void parse_expression(Parse_Node **expression_root, Var_Table *global_table, Var
                 break;
             binop_precedence  = get_precedence(binop_type);
         }
-        //}
-
     }
     array_append(expression_root, *left);
 }
@@ -634,6 +687,18 @@ void parse_statement(Parse_Node **statements, Var_Table *global_table, Var_Table
         null_statement.type = PARSE_TYPE_STATEMENT_NULL;
         (*token_index)++;
         array_append(statements, null_statement);
+    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_IF)) {
+        Parse_Node if_node = {0};
+        if_node.type = PARSE_TYPE_STATEMENT_IF;
+        (*token_index) +=1;
+        ASSERT(tokens[*token_index].type == TOKEN_TYPE_OPEN_PAREN);
+        parse_expression(&if_node.statement.if_statement.condition ,global_table, var_table,  tokens, token_index,0);
+        parse_statement(&if_node.statement.if_statement.then ,global_table, var_table,  tokens, token_index);
+        if (peek_token(tokens, *token_index, TOKEN_TYPE_ELSE) ) {
+            (*token_index) +=1 ;
+            parse_statement(&if_node.statement.if_statement.else_clause, global_table, var_table,  tokens, token_index);
+        }
+        array_append(statements, if_node);
     } else {
 
         Parse_Node expression_statement = ZERO_STRUCT;

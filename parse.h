@@ -4,21 +4,8 @@
 #include "string.h"
 #include "lex.h"
 
-//program> ::= <function>
-//<function> ::= "int" <identifier> "(" "void" ")" "{" { <block-item> } "}"
-//<block-item> ::= <statement> | <declaration>
-//<declaration> ::= "int" <identifier> [ "=" <exp> ] ";"
-//<statement> ::= "return" <exp> ";" | <exp> ";" | ";"
-//<exp> ::= <factor> | <exp> <binop> <exp>
-//<factor> ::= <int> | <identifier> | <unop> <factor> | "(" <exp> ")"
-//<unop> ::= "-" | "~" | "!"
-//<binop> ::= "-" | "+" | "*" | "/" | "%" | "&&" | "||"
-//| "==" | "!=" | "<" | "<=" | ">" | ">=" | "="
-//<identifier> ::= ? An identifier token ?
-//<int> ::= ? A constant token ?
- 
-
 #define PRECEDENCE_EQUAL                    1
+#define PRECEDENCE_CONDITIONAL              3
 #define PRECEDENCE_LOGICAL_OR               5
 #define PRECEDENCE_LOGICAL_AND             10
 #define PRECEDENCE_BITWISE_OR              15
@@ -66,6 +53,7 @@ enum Parse_Type  {
 
     PARSE_TYPE_STATEMENT_DECLARATION,
     PARSE_TYPE_STATEMENT_RETURN,
+    PARSE_TYPE_STATEMENT_IF,
     PARSE_TYPE_STATEMENT_EXPRESSION,
     PARSE_TYPE_STATEMENT_NULL,
     
@@ -90,6 +78,8 @@ enum Parse_Type  {
     PARSE_TYPE_EXP_BINOP_LOGICAL_GREATER_THAN_EQUAL_TO,
     PARSE_TYPE_EXP_BINOP_LOGICAL_EQUAL_TO,
     PARSE_TYPE_EXP_BINOP_LOGICAL_NOT_EQUAL_TO,
+
+    PARSE_TYPE_EXP_CONDITIONAL,
 
     PARSE_TYPE_EXP_FACTOR_EXP,
     PARSE_TYPE_EXP_FACTOR_INT,
@@ -130,12 +120,19 @@ struct Parse_Node  {
 
         struct {
             Parse_Node *expression;
+            struct {
+                Parse_Node *condition;
+                Parse_Node *then;
+                Parse_Node *else_clause;
+            }if_statement;
         }statement;
 
         struct {
             Parse_Node *l_value;
             Parse_Node *r_value;
         }declaration;
+
+
 
         struct {
             struct {
@@ -147,6 +144,12 @@ struct Parse_Node  {
                 int int_value;
                 String var_name;
             }factor;
+
+            struct {
+                Parse_Node *condition;
+                Parse_Node *true_expression;
+                Parse_Node *false_expression;
+            }conditional;
 
             struct {
                 String identifier;

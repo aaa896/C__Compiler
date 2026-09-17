@@ -53,7 +53,7 @@
 !_TAG_PARSER_VERSION!C++	2.2	/current.age/
 !_TAG_PARSER_VERSION!Sh	0.0	/current.age/
 !_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
-!_TAG_PROC_CWD	/home/shabbeer/r/c_c/c5/	//
+!_TAG_PROC_CWD	/home/shabbeer/r/c_c/c6/	//
 !_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
 !_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
 !_TAG_PROGRAM_URL	https://ctags.io/	/official site/
@@ -73,7 +73,6 @@
 !_TAG_ROLE_DESCRIPTION!C++!partition	imported	/imported with "imported ..."/
 !_TAG_ROLE_DESCRIPTION!Sh!heredoc	endmarker	/end marker/
 !_TAG_ROLE_DESCRIPTION!Sh!script	loaded	/loaded/
-ARRAY_ALIGN	./dynamic_array.h	/^#define ARRAY_ALIGN /;"	d
 ARRAY_CAPACITY_DEFAULT	./dynamic_array.h	/^#define ARRAY_CAPACITY_DEFAULT /;"	d
 ARRAY_COUNT	./tdf.h	/^#define ARRAY_COUNT(/;"	d
 ASAN_USE	./tdf.h	/^#define ASAN_USE /;"	d
@@ -163,8 +162,11 @@ PARSE_TYPE_EXP_BINOP_LOGICAL_OR	./parse.h	/^    PARSE_TYPE_EXP_BINOP_LOGICAL_OR,
 PARSE_TYPE_EXP_BINOP_MODULO	./parse.h	/^    PARSE_TYPE_EXP_BINOP_MODULO,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_BINOP_MULTIPLY	./parse.h	/^    PARSE_TYPE_EXP_BINOP_MULTIPLY,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_BINOP_SUB	./parse.h	/^    PARSE_TYPE_EXP_BINOP_SUB,$/;"	e	enum:Parse_Type
+PARSE_TYPE_EXP_CONDITIONAL	./parse.h	/^    PARSE_TYPE_EXP_CONDITIONAL,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_FACTOR_EXP	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_EXP,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_FACTOR_INT	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_INT,$/;"	e	enum:Parse_Type
+PARSE_TYPE_EXP_FACTOR_POST_INCREMENT	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_POST_INCREMENT,$/;"	e	enum:Parse_Type
+PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_FACTOR_UNOP_LOGICAL_NOT	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_UNOP_LOGICAL_NOT,$/;"	e	enum:Parse_Type
 PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE	./parse.h	/^    PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE,$/;"	e	enum:Parse_Type
@@ -173,6 +175,7 @@ PARSE_TYPE_FUNCTION	./parse.h	/^    PARSE_TYPE_FUNCTION,$/;"	e	enum:Parse_Type
 PARSE_TYPE_PROGRAM	./parse.h	/^    PARSE_TYPE_PROGRAM,$/;"	e	enum:Parse_Type
 PARSE_TYPE_STATEMENT_DECLARATION	./parse.h	/^    PARSE_TYPE_STATEMENT_DECLARATION,$/;"	e	enum:Parse_Type
 PARSE_TYPE_STATEMENT_EXPRESSION	./parse.h	/^    PARSE_TYPE_STATEMENT_EXPRESSION,$/;"	e	enum:Parse_Type
+PARSE_TYPE_STATEMENT_IF	./parse.h	/^    PARSE_TYPE_STATEMENT_IF,$/;"	e	enum:Parse_Type
 PARSE_TYPE_STATEMENT_NULL	./parse.h	/^    PARSE_TYPE_STATEMENT_NULL,$/;"	e	enum:Parse_Type
 PARSE_TYPE_STATEMENT_RETURN	./parse.h	/^    PARSE_TYPE_STATEMENT_RETURN,$/;"	e	enum:Parse_Type
 PLATFORM_LINUX	./tdf.h	/^#define PLATFORM_LINUX /;"	d
@@ -184,6 +187,7 @@ PRECEDENCE_BITWISE_OR	./parse.h	/^#define PRECEDENCE_BITWISE_OR /;"	d
 PRECEDENCE_BITWISE_SHIFT_LEFT	./parse.h	/^#define PRECEDENCE_BITWISE_SHIFT_LEFT /;"	d
 PRECEDENCE_BITWISE_SHIFT_RIGHT	./parse.h	/^#define PRECEDENCE_BITWISE_SHIFT_RIGHT /;"	d
 PRECEDENCE_BITWISE_XOR	./parse.h	/^#define PRECEDENCE_BITWISE_XOR /;"	d
+PRECEDENCE_CONDITIONAL	./parse.h	/^#define PRECEDENCE_CONDITIONAL /;"	d
 PRECEDENCE_DIVIDE	./parse.h	/^#define PRECEDENCE_DIVIDE /;"	d
 PRECEDENCE_EQUAL	./parse.h	/^#define PRECEDENCE_EQUAL /;"	d
 PRECEDENCE_EQUAL_TO	./parse.h	/^#define PRECEDENCE_EQUAL_TO /;"	d
@@ -248,20 +252,29 @@ TAC_NODE_PROGRAM	./tac.h	/^    TAC_NODE_PROGRAM,$/;"	e	enum:Tac_Node_Type
 TB	./tdf.h	/^#define TB(/;"	d
 THREAD_LOCAL	./tdf.h	/^#define THREAD_LOCAL /;"	d
 TOKEN_TYPE_AMPERSAND	./lex.h	/^    TOKEN_TYPE_AMPERSAND,$/;"	e	enum:Token_Type
+TOKEN_TYPE_AMPERSAND_EQUAL	./lex.h	/^    TOKEN_TYPE_AMPERSAND_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_ASTERIX	./lex.h	/^    TOKEN_TYPE_ASTERIX,$/;"	e	enum:Token_Type
+TOKEN_TYPE_ASTERIX_EQUAL	./lex.h	/^    TOKEN_TYPE_ASTERIX_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_CARROT	./lex.h	/^    TOKEN_TYPE_CARROT,$/;"	e	enum:Token_Type
+TOKEN_TYPE_CARROT_EQUAL	./lex.h	/^    TOKEN_TYPE_CARROT_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_CLOSE_BRACKET	./lex.h	/^    TOKEN_TYPE_CLOSE_BRACKET,$/;"	e	enum:Token_Type
 TOKEN_TYPE_CLOSE_PAREN	./lex.h	/^    TOKEN_TYPE_CLOSE_PAREN,$/;"	e	enum:Token_Type
+TOKEN_TYPE_COLON	./lex.h	/^    TOKEN_TYPE_COLON,$/;"	e	enum:Token_Type
 TOKEN_TYPE_DECREMENT	./lex.h	/^    TOKEN_TYPE_DECREMENT,$/;"	e	enum:Token_Type
+TOKEN_TYPE_ELSE	./lex.h	/^    TOKEN_TYPE_ELSE,$/;"	e	enum:Token_Type
 TOKEN_TYPE_EQUAL_SIGN	./lex.h	/^    TOKEN_TYPE_EQUAL_SIGN,$/;"	e	enum:Token_Type
 TOKEN_TYPE_EQUAL_TO	./lex.h	/^    TOKEN_TYPE_EQUAL_TO,$/;"	e	enum:Token_Type
 TOKEN_TYPE_ERROR	./lex.h	/^    TOKEN_TYPE_ERROR,$/;"	e	enum:Token_Type
 TOKEN_TYPE_EXCLAMATION	./lex.h	/^    TOKEN_TYPE_EXCLAMATION,$/;"	e	enum:Token_Type
 TOKEN_TYPE_FORWARD_SLASH	./lex.h	/^    TOKEN_TYPE_FORWARD_SLASH,$/;"	e	enum:Token_Type
+TOKEN_TYPE_FORWARD_SLASH_EQUAL	./lex.h	/^    TOKEN_TYPE_FORWARD_SLASH_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_GREATER_THAN	./lex.h	/^    TOKEN_TYPE_GREATER_THAN,$/;"	e	enum:Token_Type
 TOKEN_TYPE_GREATER_THAN_EQUAL_TO	./lex.h	/^    TOKEN_TYPE_GREATER_THAN_EQUAL_TO,$/;"	e	enum:Token_Type
 TOKEN_TYPE_IDENTIFIER	./lex.h	/^    TOKEN_TYPE_IDENTIFIER,$/;"	e	enum:Token_Type
+TOKEN_TYPE_IF	./lex.h	/^    TOKEN_TYPE_IF,$/;"	e	enum:Token_Type
+TOKEN_TYPE_INCREMENT	./lex.h	/^    TOKEN_TYPE_INCREMENT,$/;"	e	enum:Token_Type
 TOKEN_TYPE_LEFT_SHIFT	./lex.h	/^    TOKEN_TYPE_LEFT_SHIFT,$/;"	e	enum:Token_Type
+TOKEN_TYPE_LEFT_SHIFT_EQUAL	./lex.h	/^    TOKEN_TYPE_LEFT_SHIFT_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_LESS_THAN	./lex.h	/^    TOKEN_TYPE_LESS_THAN,$/;"	e	enum:Token_Type
 TOKEN_TYPE_LESS_THAN_EQUAL_TO	./lex.h	/^    TOKEN_TYPE_LESS_THAN_EQUAL_TO,$/;"	e	enum:Token_Type
 TOKEN_TYPE_LOGICAL_AND	./lex.h	/^    TOKEN_TYPE_LOGICAL_AND,$/;"	e	enum:Token_Type
@@ -272,11 +285,16 @@ TOKEN_TYPE_NUMBER	./lex.h	/^    TOKEN_TYPE_NUMBER,$/;"	e	enum:Token_Type
 TOKEN_TYPE_OPEN_BRACKET	./lex.h	/^    TOKEN_TYPE_OPEN_BRACKET,$/;"	e	enum:Token_Type
 TOKEN_TYPE_OPEN_PAREN	./lex.h	/^    TOKEN_TYPE_OPEN_PAREN,$/;"	e	enum:Token_Type
 TOKEN_TYPE_PERCENT	./lex.h	/^    TOKEN_TYPE_PERCENT,$/;"	e	enum:Token_Type
+TOKEN_TYPE_PERCENT_EQUAL	./lex.h	/^    TOKEN_TYPE_PERCENT_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_PLUS	./lex.h	/^    TOKEN_TYPE_PLUS,$/;"	e	enum:Token_Type
+TOKEN_TYPE_PLUS_EQUAL	./lex.h	/^    TOKEN_TYPE_PLUS_EQUAL,$/;"	e	enum:Token_Type
+TOKEN_TYPE_QUESTION_MARK	./lex.h	/^    TOKEN_TYPE_QUESTION_MARK,$/;"	e	enum:Token_Type
 TOKEN_TYPE_RIGHT_SHIFT	./lex.h	/^    TOKEN_TYPE_RIGHT_SHIFT,$/;"	e	enum:Token_Type
+TOKEN_TYPE_RIGHT_SHIFT_EQUAL	./lex.h	/^    TOKEN_TYPE_RIGHT_SHIFT_EQUAL,$/;"	e	enum:Token_Type
 TOKEN_TYPE_SEMICOLON	./lex.h	/^    TOKEN_TYPE_SEMICOLON,$/;"	e	enum:Token_Type
 TOKEN_TYPE_TILDE	./lex.h	/^    TOKEN_TYPE_TILDE,$/;"	e	enum:Token_Type
 TOKEN_TYPE_VERTICAL_BAR	./lex.h	/^    TOKEN_TYPE_VERTICAL_BAR,$/;"	e	enum:Token_Type
+TOKEN_TYPE_VERTICAL_BAR_EQUAL	./lex.h	/^    TOKEN_TYPE_VERTICAL_BAR_EQUAL,$/;"	e	enum:Token_Type
 Tac_Node	./tac.h	/^struct Tac_Node  {$/;"	s
 Tac_Node	./tac.h	/^typedef struct Tac_Node Tac_Node;$/;"	t	typeref:struct:Tac_Node
 Tac_Node_Operand	./tac.h	/^struct Tac_Node_Operand  {$/;"	s
@@ -329,17 +347,21 @@ __anond89d94930508	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond8
 __anond89d94930608	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond89d9493040a
 __anond89d94930708	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond89d9493040a
 __anond89d94930808	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond89d9493040a
-__anond89d94930908	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond89d9493040a
+__anond89d94930908	./parse.h	/^            struct {$/;"	s	struct:Parse_Node::__anond89d9493040a::__anond89d94930808
 __anond89d94930a08	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond89d9493040a
-__anond89d94930b08	./parse.h	/^            struct {$/;"	s	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08
-__anond89d94930c0a	./parse.h	/^                union {$/;"	u	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930b08
-__anond89d94930d08	./parse.h	/^            struct {$/;"	s	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08
-__anond89d94930e0a	./parse.h	/^                union {$/;"	u	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930d08
+__anond89d94930b08	./parse.h	/^        struct {$/;"	s	union:Parse_Node::__anond89d9493040a
+__anond89d94930c08	./parse.h	/^            struct {$/;"	s	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08
+__anond89d94930d0a	./parse.h	/^                union {$/;"	u	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08
+__anond89d94930e08	./parse.h	/^            struct {$/;"	s	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08
+__anond89d94930f08	./parse.h	/^            struct {$/;"	s	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08
+__anond89d9493100a	./parse.h	/^                union {$/;"	u	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930f08
 __anoneed229fb0108	./dynamic_array.h	/^typedef struct {$/;"	s
 align_pow2	./tdf.h	/^#define align_pow2(/;"	d
 alignof	./tdf.h	/^#define alignof(x) __alignof(/;"	d
 alignof	./tdf.h	/^#define alignof(x) __alignof_/;"	d
 array_append	./dynamic_array.h	/^#define array_append(/;"	d
+array_free	./dynamic_array.h	/^#define array_free(/;"	d
+array_insert	./dynamic_array.h	/^#define array_insert(/;"	d
 asan_poison_memory_region	./tdf.h	/^#define asan_poison_memory_region(/;"	d
 asan_poison_memory_region	./tdf.h	/^#define asan_poison_memory_region(addr, size) __asan_poison_memory_region(/;"	d
 asan_unpoison_memory_region	./tdf.h	/^#define asan_unpoison_memory_region(/;"	d
@@ -347,7 +369,7 @@ asan_unpoison_memory_region	./tdf.h	/^#define asan_unpoison_memory_region(addr, 
 b32	./tdf.h	/^typedef int32_t  b32;$/;"	t	typeref:typename:int32_t
 binary	./code_gen.h	/^        }binary;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0508
 binary	./tac.h	/^                }binary;$/;"	m	union:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500708
-binop	./parse.h	/^            }binop;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930d08
+binop	./parse.h	/^            }binop;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930f08
 block_items	./parse.h	/^            Parse_Node *block_items;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930608	typeref:typename:Parse_Node *
 block_items	./parse.h	/^        }block_items;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930708
 capacity	./dynamic_array.h	/^    size_t capacity;$/;"	m	struct:__anoneed229fb0108	typeref:typename:size_t
@@ -356,36 +378,42 @@ clamp_bottom	./tdf.h	/^#define clamp_bottom(/;"	d
 clamp_top	./tdf.h	/^#define clamp_top(/;"	d
 cmp	./code_gen.h	/^        }cmp;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0908
 col	./lex.h	/^    int col;$/;"	m	struct:Token	typeref:typename:int
+condition	./parse.h	/^                Parse_Node *condition;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d94930908	typeref:typename:Parse_Node *
+condition	./parse.h	/^                Parse_Node *condition;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930e08	typeref:typename:Parse_Node *
 condition	./tac.h	/^                    Tac_Node_Operand condition;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500808	typeref:typename:Tac_Node_Operand
+conditional	./parse.h	/^            }conditional;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930e08
 constant	./lex.h	/^    int constant;$/;"	m	struct:Token	typeref:typename:int
 copy	./tac.h	/^                }copy;$/;"	m	union:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500908
 count	./dynamic_array.h	/^    size_t count;$/;"	m	struct:__anoneed229fb0108	typeref:typename:size_t
 count	./string.h	/^    int count;$/;"	m	struct:String_View	typeref:typename:int
 create_array	./dynamic_array.h	/^#define create_array(/;"	d
 create_code_gen	./code_gen.c	/^Assembly_Node * create_code_gen( Tac_Node *tac_node) $/;"	f	typeref:typename:Assembly_Node *
+create_label	./tac.c	/^Tac_Node_Operand create_label() {$/;"	f	typeref:typename:Tac_Node_Operand
 create_tac_functions	./tac.c	/^void create_tac_functions( Tac_Node **tac_functions, Parse_Node *parse_function)$/;"	f	typeref:typename:void
 create_tac_instructions	./tac.c	/^Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Node *parse_express/;"	f	typeref:typename:Tac_Node_Operand
 create_tac_nodes	./tac.c	/^Tac_Node * create_tac_nodes( Parse_Node *parse_program)$/;"	f	typeref:typename:Tac_Node *
 cstr_create_from_int	./string.c	/^char* cstr_create_from_int( int x)$/;"	f	typeref:typename:char *
 data	./string.h	/^    char *data;$/;"	m	struct:String	typeref:typename:char *
 data	./string.h	/^    char *data;$/;"	m	struct:String_View	typeref:typename:char *
-declaration	./parse.h	/^        }declaration;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930908
+declaration	./parse.h	/^        }declaration;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930a08
 def	./parse.h	/^    String def;$/;"	m	struct:__anond89d94930208	typeref:typename:String
 dest	./code_gen.h	/^            Assembly_Node_Operand dest;$/;"	m	struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0408	typeref:typename:Assembly_Node_Operand
 dest	./code_gen.h	/^            Assembly_Node_Operand dest;$/;"	m	struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0508	typeref:typename:Assembly_Node_Operand
 dest	./tac.h	/^                    Tac_Node_Operand dest;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500608	typeref:typename:Tac_Node_Operand
 dest	./tac.h	/^                    Tac_Node_Operand dest;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500708	typeref:typename:Tac_Node_Operand
 dest	./tac.h	/^                    Tac_Node_Operand dest;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500908	typeref:typename:Tac_Node_Operand
+else_clause	./parse.h	/^                Parse_Node *else_clause;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d94930908	typeref:typename:Parse_Node *
 emmit_code	./code_emmission.c	/^void emmit_code( Assembly_Node *node, String path)$/;"	f	typeref:typename:void
 emmit_function	./code_emmission.c	/^void emmit_function( String *output, Assembly_Node *node)$/;"	f	typeref:typename:void
 emmit_instructions	./code_emmission.c	/^void emmit_instructions( String *output , Assembly_Node *node)$/;"	f	typeref:typename:void
 emmit_program	./code_emmission.c	/^String emmit_program( Assembly_Node *node)$/;"	f	typeref:typename:String
-expression	./parse.h	/^                    Parse_Node *expression;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930b08::__anond89d94930c0a	typeref:typename:Parse_Node *
+expression	./parse.h	/^                    Parse_Node *expression;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08::__anond89d94930d0a	typeref:typename:Parse_Node *
 expression	./parse.h	/^            Parse_Node *expression;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930808	typeref:typename:Parse_Node *
-expression	./parse.h	/^        }expression;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930a08
+expression	./parse.h	/^        }expression;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930b08
 f32	./tdf.h	/^typedef float    f32;$/;"	t	typeref:typename:float
 f64	./tdf.h	/^typedef double   f64;$/;"	t	typeref:typename:double
-factor	./parse.h	/^            }factor;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930b08
+factor	./parse.h	/^            }factor;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08
+false_expression	./parse.h	/^                Parse_Node *false_expression;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930e08	typeref:typename:Parse_Node *
 function	./code_gen.h	/^        }function;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0308
 function	./parse.h	/^        }function;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930608
 function	./tac.h	/^        }function;$/;"	m	union:Tac_Node::__anon4ec2f450010a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500308
@@ -394,8 +422,7 @@ functions	./code_gen.h	/^            Assembly_Node *functions;$/;"	m	struct:Asse
 functions	./parse.h	/^            Parse_Node *functions;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930508	typeref:typename:Parse_Node *
 functions	./tac.h	/^            Tac_Node *functions;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500208	typeref:typename:Tac_Node *
 get_array_count	./dynamic_array.h	/^#define get_array_count(/;"	d
-get_array_header	./dynamic_array.h	/^#define get_array_header(array)  ((Array_Header*)(((uint8_t*)array) - (sizeof(Array_Header) + ge/;"	d
-get_array_header_padding	./dynamic_array.h	/^#define get_array_header_padding /;"	d
+get_array_header	./dynamic_array.h	/^#define get_array_header(/;"	d
 get_array_tail	./dynamic_array.h	/^#define get_array_tail(/;"	d
 get_precedence	./parse.c	/^int get_precedence(Parse_Type binop)$/;"	f	typeref:typename:int
 get_var_table_index	./parse.c	/^int get_var_table_index(Var_Table *var_table, String identifier) {$/;"	f	typeref:typename:int
@@ -406,29 +433,32 @@ i64	./tdf.h	/^typedef int64_t  i64;$/;"	t	typeref:typename:int64_t
 i8	./tdf.h	/^typedef int8_t   i8;$/;"	t	typeref:typename:int8_t
 identifier	./code_gen.h	/^    String identifier;$/;"	m	struct:Assembly_Node_Operand	typeref:typename:String
 identifier	./lex.h	/^    String identifier;$/;"	m	struct:Token	typeref:typename:String
-identifier	./parse.h	/^                String identifier;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930d08	typeref:typename:String
+identifier	./parse.h	/^                String identifier;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930f08	typeref:typename:String
 identifier	./tac.h	/^    String identifier;$/;"	m	struct:Tac_Node_Operand	typeref:typename:String
 idiv	./code_gen.h	/^        }idiv;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0608
+if_statement	./parse.h	/^            }if_statement;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930808	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d94930908
+increment_value	./parse.h	/^                    Parse_Node *increment_value;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08::__anond89d94930d0a	typeref:typename:Parse_Node *
 insert_var_table	./parse.c	/^void insert_var_table(Var_Table *var_table, String identifier) {$/;"	f	typeref:typename:void
 instruction	./tac.h	/^        }instruction;$/;"	m	union:Tac_Node::__anon4ec2f450010a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408
 instructions	./code_gen.h	/^            Assembly_Node *instructions;$/;"	m	struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0308	typeref:typename:Assembly_Node *
 instructions	./tac.h	/^            Tac_Node *instructions;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500308	typeref:typename:Tac_Node *
 int_value	./code_gen.h	/^    int int_value;$/;"	m	struct:Assembly_Node_Operand	typeref:typename:int
-int_value	./parse.h	/^                    int int_value;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930d08::__anond89d94930e0a	typeref:typename:int
-int_value	./parse.h	/^                int int_value;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930b08	typeref:typename:int
+int_value	./parse.h	/^                    int int_value;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930f08::__anond89d9493100a	typeref:typename:int
+int_value	./parse.h	/^                int int_value;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08	typeref:typename:int
 int_value	./tac.h	/^    int int_value;$/;"	m	struct:Tac_Node_Operand	typeref:typename:int
+invalid_var_names	./parse.c	/^char *invalid_var_names[] = {$/;"	v	typeref:typename:char * []
 is_pow2	./tdf.h	/^#define is_pow2(/;"	d
 items	./parse.h	/^            Parse_Node *items;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930708	typeref:typename:Parse_Node *
 jmp	./code_gen.h	/^        }jmp;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0c08
 jmp	./tac.h	/^                }jmp;$/;"	m	union:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500808
-l_value	./parse.h	/^            Parse_Node *l_value;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930908	typeref:typename:Parse_Node *
+l_value	./parse.h	/^            Parse_Node *l_value;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08	typeref:typename:Parse_Node *
 label	./code_gen.h	/^        }label;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0b08
 label	./tac.h	/^                    Tac_Node_Operand label;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500808	typeref:typename:Tac_Node_Operand
 label	./tac.h	/^                }label;$/;"	m	union:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500a08
 label_name	./tac.c	/^static char * label_name       = "label.";$/;"	v	typeref:typename:char *	file:
 label_name_index	./tac.c	/^static int    label_name_index = 0;$/;"	v	typeref:typename:int	file:
 label_prefix	./code_emmission.c	/^char *label_prefix = ".L";$/;"	v	typeref:typename:char *
-left	./parse.h	/^                Parse_Node *left;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930d08	typeref:typename:Parse_Node *
+left	./parse.h	/^                Parse_Node *left;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930f08	typeref:typename:Parse_Node *
 lex_program	./lex.c	/^Token * lex_program( String path) $/;"	f	typeref:typename:Token *
 line	./lex.h	/^    String line;$/;"	m	struct:Token	typeref:typename:String
 main	./input.c	/^int main(void) {$/;"	f	typeref:typename:int
@@ -455,7 +485,7 @@ operand_b	./code_gen.h	/^            Assembly_Node_Operand operand_b ;$/;"	m	str
 parse_block_items	./parse.c	/^void parse_block_items( Parse_Node **block_item_root, Var_Table *global_table, Var_Table *var_ta/;"	f	typeref:typename:void
 parse_declaration	./parse.c	/^void parse_declaration( Parse_Node **block_item_root, Var_Table *global_table, Var_Table *var_ta/;"	f	typeref:typename:void
 parse_expression	./parse.c	/^void parse_expression(Parse_Node **expression_root, Var_Table *global_table, Var_Table *var_tabl/;"	f	typeref:typename:void
-parse_factor	./parse.c	/^void parse_factor(Parse_Node **factor_root, Var_Table *global_table, Var_Table *var_table, Token/;"	f	typeref:typename:void
+parse_factor	./parse.c	/^void parse_factor(Parse_Node **factor_root,  Var_Table *global_table, Var_Table *var_table, Toke/;"	f	typeref:typename:void
 parse_function	./parse.c	/^void parse_function(Var_Table *global_table, Parse_Node **functions, Token *tokens, int *token_i/;"	f	typeref:typename:void
 parse_program	./parse.c	/^Parse_Node * parse_program( Token *tokens) $/;"	f	typeref:typename:Parse_Node *
 parse_statement	./parse.c	/^void parse_statement(Parse_Node **statements, Var_Table *global_table, Var_Table *var_table, Tok/;"	f	typeref:typename:void
@@ -488,12 +518,13 @@ process_set	./code_gen.c	/^static void process_set( Assembly_Node **instructions
 program	./code_gen.h	/^        }program;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0208
 program	./parse.h	/^        }program;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930508
 program	./tac.h	/^        }program;$/;"	m	union:Tac_Node::__anon4ec2f450010a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500208
-r_value	./parse.h	/^            Parse_Node *r_value;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930908	typeref:typename:Parse_Node *
+r_value	./parse.h	/^            Parse_Node *r_value;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08	typeref:typename:Parse_Node *
 return_operand	./tac.h	/^                Tac_Node_Operand return_operand;$/;"	m	union:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a	typeref:typename:Tac_Node_Operand
+return_statement	./tac.h	/^            bool return_statement;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500308	typeref:typename:bool
 return_value	./code_gen.h	/^            String return_value;$/;"	m	struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0308	typeref:typename:String
 return_value_name	./parse.h	/^            String return_value_name;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930608	typeref:typename:String
 return_value_name	./tac.h	/^            String return_value_name;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500308	typeref:typename:String
-right	./parse.h	/^                Parse_Node *right;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930d08	typeref:typename:Parse_Node *
+right	./parse.h	/^                Parse_Node *right;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930f08	typeref:typename:Parse_Node *
 row	./lex.h	/^    int row;$/;"	m	struct:Token	typeref:typename:int
 search_function	./code_gen.c	/^static void search_function( Assembly_Node **functions, Tac_Node *ir_function) $/;"	f	typeref:typename:void	file:
 search_instruction	./code_gen.c	/^static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instructions) $/;"	f	typeref:typename:void	file:
@@ -547,6 +578,8 @@ sv_to_int	./string.c	/^int sv_to_int(String_View sv) {$/;"	f	typeref:typename:in
 sv_trim	./string.c	/^void sv_trim(String_View *sv) $/;"	f	typeref:typename:void
 sv_trim_left	./string.c	/^void sv_trim_left(String_View *sv) $/;"	f	typeref:typename:void
 sv_trim_right	./string.c	/^void sv_trim_right(String_View *sv) $/;"	f	typeref:typename:void
+then	./parse.h	/^                Parse_Node *then;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d94930908	typeref:typename:Parse_Node *
+true_expression	./parse.h	/^                Parse_Node *true_expression;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930e08	typeref:typename:Parse_Node *
 type	./code_gen.h	/^    Assembly_Node_Type type;$/;"	m	struct:Assembly_Node	typeref:typename:Assembly_Node_Type
 type	./code_gen.h	/^    Assembly_Node_Type type;$/;"	m	struct:Assembly_Node_Operand	typeref:typename:Assembly_Node_Type
 type	./lex.h	/^    Token_Type type;$/;"	m	struct:Token	typeref:typename:Token_Type
@@ -562,10 +595,10 @@ u64	./tdf.h	/^typedef uint64_t u64;$/;"	t	typeref:typename:uint64_t
 u8	./tdf.h	/^typedef uint8_t  u8;$/;"	t	typeref:typename:uint8_t
 unary	./code_gen.h	/^        }unary;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0708
 unary	./tac.h	/^                }unary;$/;"	m	union:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500608
-unop_next	./parse.h	/^                    Parse_Node *unop_next;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930b08::__anond89d94930c0a	typeref:typename:Parse_Node *
-var	./parse.h	/^                String var;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930a08::__anond89d94930b08	typeref:typename:String
+unop_next	./parse.h	/^                    Parse_Node *unop_next;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08::__anond89d94930d0a	typeref:typename:Parse_Node *
 var_id_count	./parse.h	/^            int var_id_count;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930608	typeref:typename:int
 var_items	./parse.h	/^    Var_Table_Item *var_items;$/;"	m	struct:__anond89d94930308	typeref:typename:Var_Table_Item *
-var_name	./tac.c	/^static char * var_name = "var.";$/;"	v	typeref:typename:char *	file:
+var_name	./parse.h	/^                String var_name;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930b08::__anond89d94930c08	typeref:typename:String
+var_name	./tac.c	/^static char * var_name = "tmp.";$/;"	v	typeref:typename:char *	file:
 var_name_index	./tac.c	/^int var_name_index  = 0;$/;"	v	typeref:typename:int
 var_table	./parse.h	/^            Var_Table var_table;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930608	typeref:typename:Var_Table

@@ -127,59 +127,61 @@ void print_tac_nodes_pad(Tac_Node *node, int start_pad, int pad_increment)
             || node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_XOR
             || node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_SHIFT_LEFT
             || node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_SHIFT_RIGHT
-    || node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN
-    || node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN_EQUAL_TO
-    || node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN
-    || node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN_EQUAL_TO
-    || node->type == TAC_NODE_INSTRUCTION_BINARY_EQUAL_TO
-    || node->type == TAC_NODE_INSTRUCTION_BINARY_NOT_EQUAL_TO) {
+            || node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN
+            || node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN_EQUAL_TO
+            || node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN
+            || node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN_EQUAL_TO
+            || node->type == TAC_NODE_INSTRUCTION_BINARY_EQUAL_TO
+            || node->type == TAC_NODE_INSTRUCTION_BINARY_NOT_EQUAL_TO) {
 
         print_n_char(start_pad, ' ');
 
-     if (node->type == TAC_NODE_INSTRUCTION_BINARY_ADD)
-        printf("Binary Add + (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_SUB)
-         printf("Binary Sub - (");
-     else if( node->type == TAC_NODE_INSTRUCTION_BINARY_MULTIPLY)
-         printf("Binary Multiply * (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_DIVIDE)
-         printf("Binary Divide / (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_MODULO) 
-         printf("Binary Modulo %% (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_OR)
-         printf("Binary Bitwise Or | (");
-     else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_AND)
-         printf("Binary Bitwise And &(");
-     else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_XOR)
-         printf("Binary Bitwise Xor ^(");
-     else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_SHIFT_LEFT)
-         printf("Binary Bitwise Shift Left <<(");
-     else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_SHIFT_RIGHT) 
-         printf("Binary Bitwise Shift Right >>(");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN)
-         printf("Binary Less Than < (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN_EQUAL_TO)
-         printf("Binary Less Than Eq <= (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN)
-         printf("Binary Greater Than > (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN_EQUAL_TO)
-         printf("Binary Greater Than EQ >= (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_EQUAL_TO)
-         printf("Binary Equal to == (");
-     else if (node->type == TAC_NODE_INSTRUCTION_BINARY_NOT_EQUAL_TO)
-         printf("Binary Not Equal to != (");
-     else 
-         ASSERT(0);
+        if (node->type == TAC_NODE_INSTRUCTION_BINARY_ADD)
+            printf("Binary Add + (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_SUB)
+            printf("Binary Sub - (");
+        else if( node->type == TAC_NODE_INSTRUCTION_BINARY_MULTIPLY)
+            printf("Binary Multiply * (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_DIVIDE)
+            printf("Binary Divide / (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_MODULO) 
+            printf("Binary Modulo %% (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_OR)
+            printf("Binary Bitwise Or | (");
+        else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_AND)
+            printf("Binary Bitwise And &(");
+        else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_XOR)
+            printf("Binary Bitwise Xor ^(");
+        else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_SHIFT_LEFT)
+            printf("Binary Bitwise Shift Left <<(");
+        else if ( node->type == TAC_NODE_INSTRUCTION_BINARY_BITWISE_SHIFT_RIGHT) 
+            printf("Binary Bitwise Shift Right >>(");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN)
+            printf("Binary Less Than < (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_LESS_THAN_EQUAL_TO)
+            printf("Binary Less Than Eq <= (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN)
+            printf("Binary Greater Than > (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN_EQUAL_TO)
+            printf("Binary Greater Than EQ >= (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_EQUAL_TO)
+            printf("Binary Equal to == (");
+        else if (node->type == TAC_NODE_INSTRUCTION_BINARY_NOT_EQUAL_TO)
+            printf("Binary Not Equal to != (");
+        else 
+            ASSERT(0);
 
-     print_tac_operand(&node->instruction.binary.src1);
-     printf(",");
-     print_tac_operand(&node->instruction.binary.src2);
-     printf(",");
-     print_tac_operand(&node->instruction.binary.dest);
-     printf(")\n");
+        print_tac_operand(&node->instruction.binary.src1);
+        printf(",");
+        print_tac_operand(&node->instruction.binary.src2);
+        printf(",");
+        print_tac_operand(&node->instruction.binary.dest);
+        printf(")\n");
 
     } else if (node->type == TAC_NODE_OPERAND_INT) {
+        ASSERT(0);
     } else if (node->type == TAC_NODE_OPERAND_VAR) {
+        ASSERT(0);
     }else {
         FAIL_MSG( "unknown Tac node print");
     }
@@ -191,6 +193,16 @@ void print_tac_nodes(Tac_Node *node)
     int padding_increment = 4;
     int start_pad = 0;
     print_tac_nodes_pad(node, start_pad, padding_increment);
+}
+
+Tac_Node_Operand create_label() {
+    Tac_Node_Operand rv = ZERO_STRUCT;
+    rv.type = TAC_NODE_INSTRUCTION_LABEL;
+    rv.int_value = label_name_index;
+    rv.identifier = str_create_from_cstr( label_name);
+    str_append_int( &rv.identifier, label_name_index);
+    label_name_index += 1;
+    return rv;
 }
 
 Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Node *parse_expression)
@@ -299,9 +311,55 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Nod
         }
         array_append(tac_instructions, tac_node);
         return dest;
+    }else if (parse_expression->type ==PARSE_TYPE_EXP_CONDITIONAL) {
 
+        Tac_Node_Operand result = {0};
+        result.type =TAC_NODE_OPERAND_VAR; 
+        result.int_value = var_name_index;
+        result.identifier = str_create_from_cstr( var_name);
+        str_append_int( &result.identifier, var_name_index);
+        var_name_index += 1;
+
+        Tac_Node_Operand condition_operand = create_tac_instructions(tac_instructions, parse_expression->expression.conditional.condition);
+
+        Tac_Node_Operand label_false_operand = create_label();
+        Tac_Node jmp1 = {0};
+        jmp1.type = TAC_NODE_INSTRUCTION_JIZ;
+        jmp1.instruction.jmp.condition = condition_operand;
+        jmp1.instruction.jmp.label = label_false_operand;
+        array_append(tac_instructions, jmp1);
+
+        Tac_Node_Operand true_operand = create_tac_instructions(tac_instructions, parse_expression->expression.conditional.true_expression);
+        Tac_Node copy = {0};
+        copy.type = TAC_NODE_INSTRUCTION_COPY;
+        copy.instruction.copy.src = true_operand;
+        copy.instruction.copy.dest = result;
+        array_append(tac_instructions, copy);
+
+        Tac_Node_Operand label_end_operand = create_label();
+        Tac_Node jmp_end = {0};
+        jmp_end.type = TAC_NODE_INSTRUCTION_JMP;
+        jmp_end.instruction.jmp.label = label_end_operand;
+        array_append(tac_instructions, jmp_end);
+
+        Tac_Node label_false = {0};
+        label_false.type = TAC_NODE_INSTRUCTION_LABEL;
+        label_false.instruction.label.operand = label_false_operand;
+        array_append(tac_instructions,  label_false);
+
+        Tac_Node_Operand false_operand = create_tac_instructions(tac_instructions, parse_expression->expression.conditional.false_expression);
+        copy.instruction.copy.src = false_operand;
+        copy.instruction.copy.dest = result;
+        array_append(tac_instructions, copy);
+
+        Tac_Node label_end = {0};
+        label_end.type = TAC_NODE_INSTRUCTION_LABEL;
+        label_end.instruction.label.operand = label_end_operand;
+        array_append(tac_instructions,  label_end);
+
+        return result;
     }else  if (parse_expression->type == PARSE_TYPE_EXP_BINOP_LOGICAL_AND 
-               || parse_expression->type == PARSE_TYPE_EXP_BINOP_LOGICAL_OR ) {
+            || parse_expression->type == PARSE_TYPE_EXP_BINOP_LOGICAL_OR ) {
 
         Tac_Node_Operand one = {0};
         one.type = TAC_NODE_OPERAND_INT;
@@ -393,23 +451,13 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Nod
         success_label.type = TAC_NODE_INSTRUCTION_LABEL;
         success_label.instruction.label.operand = success_label_jmp;
         array_append(tac_instructions, success_label);
-
-        //tac_node.instruction.binary.src1 = src1;
-        //tac_node.instruction.binary.src2 = src2;
-        //tac_node.instruction.binary.dest = dest;
-        //array_append(tac_instructions, tac_node);
         return dest;
     }else if (parse_expression->type == PARSE_TYPE_EXP_FACTOR_INT) {
         Tac_Node_Operand operand = ZERO_STRUCT;
-        //if (parse_expression->expression.operand.type == PARSE_TYPE_EXP_OPERAND_INT) {
         operand.type = TAC_NODE_OPERAND_INT;
         operand.int_value = parse_expression->expression.factor.int_value;
         operand.identifier = str_create_from_int( operand.int_value);
         return operand;
-        // }else {
-        //             FAIL_MSG( "Tac operand fail");
-        // }
-
     }else if (parse_expression->type == PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT) {
         Parse_Node add = {0};
         add.type = PARSE_TYPE_EXP_BINOP_ADD;
@@ -462,13 +510,11 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Nod
         Tac_Node_Operand operand = parse_var_to_ir(parse_expression);
 
         return operand;
-        // }else {
-        //             FAIL_MSG( "Tac operand fail");
-        // }
 
-    }else {
-        FAIL_MSG( "Tac instruction fail");
-    }
+
+}else {
+    FAIL_MSG( "Tac instruction fail");
+}
 
 
 }
@@ -486,6 +532,91 @@ Tac_Node_Operand parse_var_to_ir(Parse_Node *parse_var) {
     return operand;
 }
 
+void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statement) {
+    if (parse_statement->type == PARSE_TYPE_STATEMENT_RETURN) {
+        Parse_Node *parse_expression = parse_statement->statement.expression;
+        Tac_Node return_instruction = ZERO_STRUCT;
+        return_instruction.type = TAC_NODE_INSTRUCTION_RETURN;
+        Tac_Node_Operand return_operand = create_tac_instructions( instruction_root, parse_expression);
+        return_instruction.instruction.return_operand = return_operand;
+        array_append(instruction_root, return_instruction);
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_DECLARATION) {
+        if (parse_statement->declaration.r_value) {
+            Parse_Node *right = parse_statement->declaration.r_value;
+            Parse_Node *left = parse_statement->declaration.l_value;
+            Tac_Node copy = ZERO_STRUCT;
+            copy.type = TAC_NODE_INSTRUCTION_COPY;
+            copy.instruction.copy.src = create_tac_instructions( instruction_root, right);
+            copy.instruction.copy.dest = parse_var_to_ir(left);
+
+            array_append(instruction_root, copy);
+        }
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_EXPRESSION) {
+        create_tac_instructions(instruction_root, parse_statement->statement.expression);
+
+
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_IF){ 
+
+        Tac_Node_Operand condition = create_tac_instructions(instruction_root, parse_statement->statement.if_statement.condition);
+
+        Tac_Node jmp_else = {0};
+        jmp_else.type = TAC_NODE_INSTRUCTION_JIZ;
+        jmp_else.instruction.jmp.condition = condition;
+        Tac_Node_Operand else_label = create_label();
+        jmp_else.instruction.jmp.label = else_label;
+        array_append(instruction_root, jmp_else);
+
+        if (parse_statement->statement.if_statement.then->type == PARSE_TYPE_STATEMENT_RETURN) {
+            Parse_Node *parse_expression = parse_statement->statement.if_statement.then->statement.expression;
+            Tac_Node return_instruction = ZERO_STRUCT;
+            return_instruction.type = TAC_NODE_INSTRUCTION_RETURN;
+            Tac_Node_Operand return_operand = create_tac_instructions( instruction_root, parse_expression);
+            return_instruction.instruction.return_operand = return_operand;
+            array_append(instruction_root, return_instruction);
+        } else {
+            create_tac_instructions(instruction_root, parse_statement->statement.if_statement.then);
+        }
+
+        Tac_Node jmp_end = {0};
+        jmp_end.type = TAC_NODE_INSTRUCTION_JMP;
+        Tac_Node_Operand end_label = create_label();
+        jmp_end.instruction.jmp.label = end_label;
+        array_append(instruction_root, jmp_end);
+
+        Tac_Node else_label_node = {0};
+        else_label_node.type = TAC_NODE_INSTRUCTION_LABEL;
+        else_label_node.instruction.label.operand = else_label;
+        array_append(instruction_root, else_label_node);
+
+        if (parse_statement->statement.if_statement.else_clause) {
+            if (parse_statement->statement.if_statement.else_clause->type == PARSE_TYPE_STATEMENT_RETURN) {
+                Parse_Node *parse_expression = parse_statement->statement.if_statement.else_clause->statement.expression;
+                Tac_Node return_instruction = ZERO_STRUCT;
+                return_instruction.type = TAC_NODE_INSTRUCTION_RETURN;
+                Tac_Node_Operand return_operand = create_tac_instructions( instruction_root, parse_expression);
+                return_instruction.instruction.return_operand = return_operand;
+                array_append(instruction_root, return_instruction);
+            } else {
+                if  (parse_statement->statement.if_statement.else_clause->type == PARSE_TYPE_STATEMENT_IF) {
+                    process_tac_statement(instruction_root, parse_statement->statement.if_statement.else_clause);
+                } else {
+                    create_tac_instructions(instruction_root, parse_statement->statement.if_statement.else_clause);
+                }
+            }
+        }
+
+        Tac_Node end_label_node = {0};
+        end_label_node.type = TAC_NODE_INSTRUCTION_LABEL;
+        end_label_node.instruction.label.operand = end_label;
+        array_append(instruction_root, end_label_node);
+
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_NULL) {
+    } else {
+        ASSERT(0);
+    }
+
+}
+
 void create_tac_functions( Tac_Node **tac_functions, Parse_Node *parse_function)
 {
     Tac_Node tac_function  = ZERO_STRUCT;
@@ -498,33 +629,8 @@ void create_tac_functions( Tac_Node **tac_functions, Parse_Node *parse_function)
     int block_item_count = get_array_count(parse_function->function.block_items);
     for  (int block_item_i = 0; block_item_i < block_item_count; ++block_item_i) {
         Parse_Node *parse_statement = &parse_function->function.block_items[block_item_i];
-        if (parse_statement->type == PARSE_TYPE_STATEMENT_RETURN) {
-            Parse_Node *parse_expression = parse_statement->statement.expression;
-            Tac_Node return_instruction = ZERO_STRUCT;
-            return_instruction.type = TAC_NODE_INSTRUCTION_RETURN;
-            Tac_Node_Operand return_operand = create_tac_instructions( &tac_function.function.instructions, parse_expression);
-            return_instruction.instruction.return_operand = return_operand;
-            array_append(&tac_function.function.instructions, return_instruction);
-        }else if (parse_statement->type == PARSE_TYPE_STATEMENT_DECLARATION) {
-            if (parse_statement->declaration.r_value) {
-                Parse_Node *right = parse_statement->declaration.r_value;
-                Parse_Node *left = parse_statement->declaration.l_value;
-                Tac_Node copy = ZERO_STRUCT;
-                copy.type = TAC_NODE_INSTRUCTION_COPY;
-                copy.instruction.copy.src = create_tac_instructions( &tac_function.function.instructions, right);
-                copy.instruction.copy.dest = parse_var_to_ir(left);
-
-                array_append(&tac_function.function.instructions, copy);
-            }
-        }else if (parse_statement->type == PARSE_TYPE_STATEMENT_EXPRESSION) {
-            create_tac_instructions(&tac_function.function.instructions, parse_statement->statement.expression);
-
-
-        }else if (parse_statement->type == PARSE_TYPE_STATEMENT_NULL) {
-            continue;
-        } else {
-            ASSERT(0);
-        }
+        Tac_Node **instructions = &tac_function.function.instructions ;
+        process_tac_statement(instructions, parse_statement);
     }
 
     Tac_Node return_instruction = ZERO_STRUCT;
