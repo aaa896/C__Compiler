@@ -515,6 +515,7 @@ process_jmp	./code_gen.c	/^static void process_jmp( Assembly_Node **instructions
 process_label	./code_gen.c	/^static void process_label( Assembly_Node **instructions, Assembly_Node label)$/;"	f	typeref:typename:void	file:
 process_mov	./code_gen.c	/^static void process_mov( Assembly_Node **instructions, Assembly_Node mov)$/;"	f	typeref:typename:void	file:
 process_set	./code_gen.c	/^static void process_set( Assembly_Node **instructions, Assembly_Node set)$/;"	f	typeref:typename:void	file:
+process_tac_statement	./tac.c	/^void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statement) {$/;"	f	typeref:typename:void
 program	./code_gen.h	/^        }program;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0208
 program	./parse.h	/^        }program;$/;"	m	union:Parse_Node::__anond89d9493040a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930508
 program	./tac.h	/^        }program;$/;"	m	union:Tac_Node::__anon4ec2f450010a	typeref:struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500208

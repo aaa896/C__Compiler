@@ -285,7 +285,23 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
 
         }
         print_char_n(' ', start_padding);
-        printf(" )\n ");
+    }else if (node->type == PARSE_TYPE_STATEMENT_GOTO) {
+        print_char_n(' ', start_padding);
+        printf("Goto  (\n ");
+        print_char_n(' ', start_padding);
+        str_print(node->statement.goto_statement.label_identifier);
+        printf("\n");
+        print_char_n(' ', start_padding);
+        printf(")\n");
+    }else if (node->type == PARSE_TYPE_STATEMENT_LABEL) {
+        print_char_n(' ', start_padding);
+        printf("Label  (\n ");
+        print_char_n(' ', start_padding);
+        str_print(node->statement.label_statement.identifier);
+        printf("\n");
+        print_char_n(' ', start_padding);
+        printf(")\n");
+
     }else if (node->type == PARSE_TYPE_EXP_CONDITIONAL) {
         print_char_n(' ', start_padding);
         printf("Conditional  (\n ");
@@ -355,12 +371,12 @@ int get_var_table_index(Var_Table *var_table, String identifier) {
     return -1;
 }
 
-void insert_var_table(Var_Table *var_table, String identifier) {
+void insert_var_table_item(Var_Table_Item **items, String identifier) {
     Var_Table_Item item = {0};
     item.string = str_clone(identifier);
-    int array_count = get_array_count(var_table->var_items);
+    int array_count = get_array_count((*items));
     item.stack_index = array_count;
-    array_append(&var_table->var_items, item);
+    array_append(items, item);
 }
 
 
@@ -681,6 +697,14 @@ void parse_statement(Parse_Node **statements, Var_Table *global_table, Var_Table
         }
         (*token_index)++;
         array_append(statements, return_statement);
+    }else if ( peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr(tokens[*token_index].identifier, "goto")) {
+        Parse_Node goto_statement = {0};
+        goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
+        (*token_index) ++;
+        ASSERT(tokens[*token_index].type == TOKEN_TYPE_IDENTIFIER);
+        goto_statement.statement.goto_statement.label_identifier = tokens[*token_index].identifier;
+        (*token_index) ++;
+        array_append(statements, goto_statement);
     }else if (peek_token(tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
 
         Parse_Node null_statement = ZERO_STRUCT;
@@ -699,6 +723,20 @@ void parse_statement(Parse_Node **statements, Var_Table *global_table, Var_Table
             parse_statement(&if_node.statement.if_statement.else_clause, global_table, var_table,  tokens, token_index);
         }
         array_append(statements, if_node);
+
+    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_LABEL)) {
+        Parse_Node label_statement = {0};
+        label_statement.type = PARSE_TYPE_STATEMENT_LABEL;
+        label_statement.statement.label_statement.identifier = tokens[*token_index].identifier;
+        int table_count = get_array_count(var_table->label_items);
+        for (int i = 0; table_count; ++i) {
+            Var_Table_Item item = var_table->label_items[i];
+            ASSERT(!str_equals_str(label_statement.statement.label_statement.identifier , item.string));
+        }
+        insert_var_table_item(&var_table->label_items, label_statement.statement.label_statement.identifier);
+        array_append(statements, label_statement);
+
+        (*token_index) ++;
     } else {
 
         Parse_Node expression_statement = ZERO_STRUCT;
@@ -741,7 +779,7 @@ void parse_declaration( Parse_Node **block_item_root, Var_Table *global_table, V
     int var_table_index = get_var_table_index(var_table, l_value.expression.factor.var_name);
     if (var_table_index != -1)
         ASSERT(0);
-    insert_var_table(var_table, l_value.expression.factor.var_name);
+    insert_var_table_item(&var_table->var_items, l_value.expression.factor.var_name);
 
     *token_index += 1;
     if (peek_token(tokens, *token_index, TOKEN_TYPE_EQUAL_SIGN)) {
@@ -768,7 +806,8 @@ void parse_block_items( Parse_Node **block_item_root, Var_Table *global_table, V
         while(peek_parse_typedef(var_table, tokens, token_index));
         bool identifier =  peek_token(tokens , *token_index, TOKEN_TYPE_IDENTIFIER );
         bool second_identifier =  peek_token(tokens , *token_index + 1, TOKEN_TYPE_IDENTIFIER );
-        bool declaration = identifier && (!str_equals_cstr(tokens[*token_index].identifier, "return")) && second_identifier;
+        bool declaration = identifier && (!str_equals_cstr(tokens[*token_index].identifier, "return")) && 
+           (!str_equals_cstr(tokens[*token_index].identifier, "goto"))  && second_identifier;
         if (declaration) {
             if (!str_equals_cstr(tokens[*token_index].identifier, "int")) {
                 //TODO fix typedef working as asign

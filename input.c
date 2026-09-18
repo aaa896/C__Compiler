@@ -1,5 +1,8 @@
 
 int main(void) {
-    if 0 return 1;
+    goto end;
+    return 1;
+end:
+    return 3;
 }
 

@@ -3,16 +3,16 @@ main:
     pushq %rbp
     movq %rsp, %rbp
     subq $0 , %rsp
-    movl $0 , %r11d
-    cmpl $0,%r11d
-    je .Llabel.0
+    jmp .Lend
     movl $1 , %eax
     movq %rbp, %rsp
     popq %rbp
     ret
-    jmp .Llabel.1
-.Llabel.0:
-.Llabel.1:
+.Lend:
+    movl $3 , %eax
+    movq %rbp, %rsp
+    popq %rbp
+    ret
     movl $0 , %eax
     movq %rbp, %rsp
     popq %rbp

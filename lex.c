@@ -16,6 +16,10 @@ void print_tokens(Token *tokens) {
             printf("Identifier ");
             str_print(tokens[i].identifier);
             printf("\n");
+        }else if (tokens[i].type == TOKEN_TYPE_LABEL) {
+            printf("Label ");
+            str_print(tokens[i].identifier);
+            printf("\n");
         } else if (tokens[i].type == TOKEN_TYPE_NUMBER) {
             printf("Number ");
             str_print(tokens[i].identifier);
@@ -141,11 +145,16 @@ Token * lex_program( String path)
 
             for (; identifier.count + i < program.size; ++identifier.count) {
                 if (!isalnum(program.data[i + identifier.count])) {
+                    if (program.data[i + identifier.count] == ':') {
+                        token.type = TOKEN_TYPE_LABEL;
+                        ++i;
+                    }
                     break;
                 }
             }
 
             token.identifier = str_create_from_sv( identifier);
+
             if (str_equals_cstr(token.identifier, "if")) {
                 token.type = TOKEN_TYPE_IF;
             } else if (str_equals_cstr(token.identifier, "else")) {

@@ -41,6 +41,7 @@ typedef struct {
 
 typedef struct  {
     Var_Table_Item *var_items;
+    Var_Table_Item *label_items;
     Typedef_Item *typedef_items;
     int stack_count;
 }Var_Table;
@@ -51,6 +52,8 @@ enum Parse_Type  {
     PARSE_TYPE_PROGRAM,
     PARSE_TYPE_FUNCTION,
 
+    PARSE_TYPE_STATEMENT_GOTO,
+    PARSE_TYPE_STATEMENT_LABEL,
     PARSE_TYPE_STATEMENT_DECLARATION,
     PARSE_TYPE_STATEMENT_RETURN,
     PARSE_TYPE_STATEMENT_IF,
@@ -125,6 +128,12 @@ struct Parse_Node  {
                 Parse_Node *then;
                 Parse_Node *else_clause;
             }if_statement;
+            struct {
+                String label_identifier;
+            }goto_statement;
+            struct {
+                String identifier;
+            }label_statement;
         }statement;
 
         struct {

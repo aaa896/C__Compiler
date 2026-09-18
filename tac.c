@@ -610,6 +610,23 @@ void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statem
         end_label_node.instruction.label.operand = end_label;
         array_append(instruction_root, end_label_node);
 
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_GOTO) {
+        Tac_Node jump = {0};
+        jump.type = TAC_NODE_INSTRUCTION_JMP;
+        Tac_Node_Operand label = {0};
+        label.type = TAC_NODE_INSTRUCTION_LABEL;
+        label.identifier = parse_statement->statement.goto_statement.label_identifier;
+        jump.instruction.jmp.label = label;
+        array_append(instruction_root, jump);
+
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_LABEL) {
+        Tac_Node label = {0};
+        label.type = TAC_NODE_INSTRUCTION_LABEL;
+        Tac_Node_Operand label_operand = {0};
+        label_operand.type = TAC_NODE_INSTRUCTION_LABEL;
+        label_operand.identifier = parse_statement->statement.label_statement.identifier;
+        label.instruction.label.operand = label_operand;
+        array_append(instruction_root, label);
     }else if (parse_statement->type == PARSE_TYPE_STATEMENT_NULL) {
     } else {
         ASSERT(0);
