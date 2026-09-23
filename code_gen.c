@@ -213,7 +213,7 @@ void print_assembly_nodes(Assembly_Node *nodes)
 }
 
 
-Assembly_Node_Operand process_ir_operand(Tac_Node_Operand *operand)
+Assembly_Node_Operand process_tac_operand(Tac_Node_Operand *operand)
 {
     Assembly_Node_Operand rv = ZERO_STRUCT;
     if (operand->type == TAC_NODE_OPERAND_INT) {
@@ -415,17 +415,17 @@ static void process_label( Assembly_Node **instructions, Assembly_Node label)
     array_append(instructions, label);
 }
 
-static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instructions) 
+static void search_instruction( Assembly_Node **instructions, Tac_Node *tac_instructions) 
 {
-    int ir_instruction_count = get_array_count(ir_instructions) ;
-    for (int i = 0; i < ir_instruction_count; ++i) {
-        Tac_Node *instruction = &ir_instructions[i];
+    int tac_instruction_count = get_array_count(tac_instructions) ;
+    for (int i = 0; i < tac_instruction_count; ++i) {
+        Tac_Node *instruction = &tac_instructions[i];
         if (instruction->type == TAC_NODE_INSTRUCTION_RETURN ){
             Tac_Node_Operand *operand = &instruction->instruction.return_operand;
 
             Assembly_Node mov = ZERO_STRUCT;
             mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov.mov.src = process_ir_operand( operand);
+            mov.mov.src = process_tac_operand( operand);
 
             mov.mov.dest.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_EAX;
             mov.mov.dest.identifier = str_create_from_cstr( "\%eax");
@@ -438,17 +438,17 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
         }else if (instruction->type == TAC_NODE_INSTRUCTION_COPY ){
             Assembly_Node mov = ZERO_STRUCT;
             mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov.mov.src = process_ir_operand( &instruction->instruction.copy.src);
-            mov.mov.dest = process_ir_operand( &instruction->instruction.copy.dest);
+            mov.mov.src = process_tac_operand( &instruction->instruction.copy.src);
+            mov.mov.dest = process_tac_operand( &instruction->instruction.copy.dest);
             process_mov( instructions, mov);
         }else if (instruction->type == TAC_NODE_INSTRUCTION_UNARY_NEGATE 
                 || instruction->type == TAC_NODE_INSTRUCTION_UNARY_BITWISE_NOT) {
-            Tac_Node_Operand *ir_src  = &instruction->instruction.unary.src;
-            Tac_Node_Operand *ir_dest = &instruction->instruction.unary.dest;
+            Tac_Node_Operand *tac_src  = &instruction->instruction.unary.src;
+            Tac_Node_Operand *tac_dest = &instruction->instruction.unary.dest;
             Assembly_Node mov = ZERO_STRUCT;
             mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov.mov.src = process_ir_operand( ir_src);
-            mov.mov.dest = process_ir_operand( ir_dest);
+            mov.mov.src = process_tac_operand( tac_src);
+            mov.mov.dest = process_tac_operand( tac_dest);
             Assembly_Node unary = ZERO_STRUCT;
             if (instruction->type == TAC_NODE_INSTRUCTION_UNARY_NEGATE )
                 unary.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_UNARY_NEGATE;
@@ -468,12 +468,12 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
             Assembly_Node cmp = ZERO_STRUCT;
             cmp.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_CMP;
             cmp.cmp.operand_a = zero;
-            cmp.cmp.operand_b = process_ir_operand( &instruction->instruction.unary.src);
+            cmp.cmp.operand_b = process_tac_operand( &instruction->instruction.unary.src);
 
             Assembly_Node mov = ZERO_STRUCT;
             mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
             mov.mov.src = zero;
-            mov.mov.dest = process_ir_operand( &instruction->instruction.unary.dest);
+            mov.mov.dest = process_tac_operand( &instruction->instruction.unary.dest);
 
             Assembly_Node set = ZERO_STRUCT;
             set.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_SETE;
@@ -494,8 +494,8 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
             Tac_Node_Operand *dest = &instruction->instruction.binary.dest;
             Assembly_Node mov = ZERO_STRUCT;
             mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov.mov.src = process_ir_operand( src1);
-            mov.mov.dest = process_ir_operand( dest);
+            mov.mov.src = process_tac_operand( src1);
+            mov.mov.dest = process_tac_operand( dest);
 
             Assembly_Node binary = ZERO_STRUCT;
 
@@ -513,7 +513,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
                 binary.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_BINARY_BITWISE_XOR;
             else
                 ASSERT(0);
-            binary.binary.src = process_ir_operand( src2);
+            binary.binary.src = process_tac_operand( src2);
             binary.binary.dest = mov.mov.dest;
 
 
@@ -535,12 +535,12 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
 
             Assembly_Node mov1 = ZERO_STRUCT;
             mov1.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov1.mov.src = process_ir_operand( src1);
-            mov1.mov.dest = process_ir_operand( dest);
+            mov1.mov.src = process_tac_operand( src1);
+            mov1.mov.dest = process_tac_operand( dest);
 
             Assembly_Node mov2 = ZERO_STRUCT;
             mov2.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov2.mov.src = process_ir_operand( src2);
+            mov2.mov.src = process_tac_operand( src2);
             mov2.mov.dest = ecx;
 
             Assembly_Node shift  = ZERO_STRUCT;
@@ -574,7 +574,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
 
             Assembly_Node mov1 = ZERO_STRUCT;
             mov1.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
-            mov1.mov.src = process_ir_operand( src1);
+            mov1.mov.src = process_tac_operand( src1);
             mov1.mov.dest = reg_eax;
 
             Assembly_Node cdq = ZERO_STRUCT;
@@ -582,7 +582,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
 
             Assembly_Node idiv = ZERO_STRUCT;
             idiv.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_IDIV;
-            idiv.idiv.operand = process_ir_operand( src2);
+            idiv.idiv.operand = process_tac_operand( src2);
 
             Assembly_Node mov2 = ZERO_STRUCT;
             mov2.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
@@ -590,7 +590,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
                 mov2.mov.src = reg_eax;
             else 
                 mov2.mov.src = reg_edx;
-            mov2.mov.dest = process_ir_operand( dest);
+            mov2.mov.dest = process_tac_operand( dest);
 
             process_mov( instructions, mov1);
             array_append(instructions, cdq);
@@ -613,13 +613,13 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
 
             Assembly_Node cmp = ZERO_STRUCT;
             cmp.type  = ASSEMBLY_NODE_TYPE_INSTRUCTION_CMP;
-            cmp.cmp.operand_a = process_ir_operand( &instruction->instruction.binary.src1);
-            cmp.cmp.operand_b = process_ir_operand( &instruction->instruction.binary.src2);
+            cmp.cmp.operand_a = process_tac_operand( &instruction->instruction.binary.src1);
+            cmp.cmp.operand_b = process_tac_operand( &instruction->instruction.binary.src2);
 
             Assembly_Node mov =ZERO_STRUCT;
             mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
             mov.mov.src = zero;
-            mov.mov.dest = process_ir_operand( &instruction->instruction.binary.dest);
+            mov.mov.dest = process_tac_operand( &instruction->instruction.binary.dest);
 
             Assembly_Node set = ZERO_STRUCT;
             if (instruction->type == TAC_NODE_INSTRUCTION_BINARY_GREATER_THAN)
@@ -655,7 +655,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
 
             Tac_Node_Operand condition = instruction->instruction.jmp.condition;
             cmp.cmp.operand_a =zero;
-            cmp.cmp.operand_b = process_ir_operand( &condition);
+            cmp.cmp.operand_b = process_tac_operand( &condition);
 
 
             Assembly_Node jmp = ZERO_STRUCT; 
@@ -663,7 +663,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
                 jmp.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_JMPE;
             else 
                 jmp.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_JMPNE;
-            jmp.jmp.operand = process_ir_operand( &instruction->instruction.jmp.label) ;
+            jmp.jmp.operand = process_tac_operand( &instruction->instruction.jmp.label) ;
 
             process_cmp( instructions,cmp);
             process_jmp( instructions,jmp);
@@ -671,13 +671,13 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
         }else if (instruction->type == TAC_NODE_INSTRUCTION_LABEL ) {
             Assembly_Node label = ZERO_STRUCT; 
             label.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_LABEL;
-            label.label.operand = process_ir_operand( &instruction->instruction.label.operand) ;
+            label.label.operand = process_tac_operand( &instruction->instruction.label.operand) ;
             process_label( instructions, label);
         }else if (instruction->type == TAC_NODE_INSTRUCTION_JMP ) {
 
             Assembly_Node jmp = ZERO_STRUCT; 
             jmp.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_JMP;
-            jmp.jmp.operand = process_ir_operand( &instruction->instruction.jmp.label) ;
+            jmp.jmp.operand = process_tac_operand( &instruction->instruction.jmp.label) ;
             process_jmp( instructions, jmp);
         }else{
             ASSERT( 0 && "code gen uknown Tac statement type \n");
@@ -686,22 +686,22 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *ir_instr
     }
 }
 
-static void search_function( Assembly_Node **functions, Tac_Node *ir_function) 
+static void search_function( Assembly_Node **functions, Tac_Node *tac_function) 
 {
-    if (ir_function->type != TAC_NODE_FUNCTION) {
+    if (tac_function->type != TAC_NODE_FUNCTION) {
         FAIL_MSG("code gen expected Tac type function\n");
     }
 
     Assembly_Node function = ZERO_STRUCT;
     function.type = ASSEMBLY_NODE_TYPE_FUNCTION;
-    function.function.name = str_clone( ir_function->function.name);
+    function.function.name = str_clone( tac_function->function.name);
     Assembly_Node stack = ZERO_STRUCT;
     stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK;
     stack.stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
-    stack.stack.operand.int_value = ir_function->function.stack_size * 4;
+    stack.stack.operand.int_value = tac_function->function.stack_size * 4;
     stack.stack.operand.identifier = str_create_from_int( stack.stack.operand.int_value);
     array_append(&function.function.instructions, stack);
-    search_instruction( &function.function.instructions, ir_function->function.instructions);
+    search_instruction( &function.function.instructions, tac_function->function.instructions);
     array_append(functions, function);
 }
 
@@ -713,8 +713,8 @@ Assembly_Node * create_code_gen( Tac_Node *tac_node)
     if (tac_node->type != TAC_NODE_PROGRAM) {
         FAIL_MSG( "Code gen expected Tac program type\n");
     }
-    int ir_function_count = get_array_count(tac_node->program.functions);
-    for (int i = 0; i < ir_function_count; ++i) {
+    int tac_function_count = get_array_count(tac_node->program.functions);
+    for (int i = 0; i < tac_function_count; ++i) {
         search_function( &program.program.functions, &tac_node->program.functions[i]);
     }
 

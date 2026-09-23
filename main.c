@@ -14,7 +14,6 @@
 
 int main(int argc, char**argv) 
 {
-
     String input_name;
     if (argc == 1) {
         input_name = str_create_from_cstr("input.c");

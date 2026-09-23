@@ -31,6 +31,8 @@
 typedef struct {
     String string;
     int stack_index;
+    int scope_id;
+    bool accessible;
     String type;
 }Var_Table_Item;
 
@@ -43,7 +45,6 @@ typedef struct  {
     Var_Table_Item *var_items;
     Var_Table_Item *label_items;
     Typedef_Item *typedef_items;
-    int stack_count;
 }Var_Table;
 
 typedef enum Parse_Type  Parse_Type;
@@ -59,6 +60,7 @@ enum Parse_Type  {
     PARSE_TYPE_STATEMENT_IF,
     PARSE_TYPE_STATEMENT_EXPRESSION,
     PARSE_TYPE_STATEMENT_NULL,
+    PARSE_TYPE_STATEMENT_COMPOUND,
     
     PARSE_TYPE_EXP_BINOP_EQUAL,
     PARSE_TYPE_EXP_BINOP_SUB,
@@ -113,8 +115,7 @@ struct Parse_Node  {
             //statements or declarations
             Parse_Node *block_items;
             Var_Table var_table;
-            int var_id_count;
-
+            int stack_count;
         }function;
 
         struct {
@@ -134,6 +135,9 @@ struct Parse_Node  {
             struct {
                 String identifier;
             }label_statement;
+            struct {
+                Parse_Node *block_items;
+            }compound;
         }statement;
 
         struct {
@@ -151,6 +155,7 @@ struct Parse_Node  {
                     Parse_Node *expression;
                 };
                 int int_value;
+                int scope_id;
                 String var_name;
             }factor;
 

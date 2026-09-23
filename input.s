@@ -2,14 +2,12 @@
 main:
     pushq %rbp
     movq %rsp, %rbp
-    subq $0 , %rsp
-    jmp .Lend
-    movl $1 , %eax
-    movq %rbp, %rsp
-    popq %rbp
-    ret
-.Lend:
-    movl $3 , %eax
+    subq $8 , %rsp
+    movl $3 , -4(%rbp)
+    movl $4 , -4(%rbp)
+    movl -4(%rbp) , %r10d
+    movl %r10d , -8(%rbp)
+    movl -8(%rbp) , %eax
     movq %rbp, %rsp
     popq %rbp
     ret

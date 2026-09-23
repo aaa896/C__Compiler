@@ -1,8 +1,8 @@
 
 int main(void) {
-    goto end;
-    return 1;
-end:
-    return 3;
+    int a = 3;
+    {
+        int a = a = 4;
+        return a;
+    }
 }
-

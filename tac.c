@@ -512,9 +512,9 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions, Parse_Nod
         return operand;
 
 
-}else {
-    FAIL_MSG( "Tac instruction fail");
-}
+    }else {
+        FAIL_MSG( "Tac instruction fail");
+    }
 
 
 }
@@ -527,6 +527,7 @@ Tac_Node_Operand parse_var_to_ir(Parse_Node *parse_var) {
     operand.int_value = parse_var->expression.factor.int_value;
     operand.identifier = str_create_from_cstr( function_var_name);
     str_append_str(&operand.identifier, parse_var->expression.factor.var_name);
+    str_append_int( &operand.identifier, parse_var->expression.factor.scope_id);
     str_append_cstr(&operand.identifier, ".");
     str_append_int( &operand.identifier, operand.int_value);
     return operand;
@@ -554,6 +555,12 @@ void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statem
     }else if (parse_statement->type == PARSE_TYPE_STATEMENT_EXPRESSION) {
         create_tac_instructions(instruction_root, parse_statement->statement.expression);
 
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_COMPOUND) {
+        int block_item_count = get_array_count(parse_statement->statement.compound.block_items);
+        for  (int block_item_i = 0; block_item_i < block_item_count; ++block_item_i) {
+            Parse_Node *block_statement = &parse_statement->statement.compound.block_items[block_item_i];
+            process_tac_statement(instruction_root, block_statement);
+        }
 
     }else if (parse_statement->type == PARSE_TYPE_STATEMENT_IF){ 
 
@@ -573,6 +580,13 @@ void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statem
             Tac_Node_Operand return_operand = create_tac_instructions( instruction_root, parse_expression);
             return_instruction.instruction.return_operand = return_operand;
             array_append(instruction_root, return_instruction);
+        }else if (parse_statement->statement.if_statement.then->type == PARSE_TYPE_STATEMENT_COMPOUND) {
+
+            int block_item_count = get_array_count(parse_statement->statement.if_statement.then->statement.compound.block_items);
+            for  (int block_item_i = 0; block_item_i < block_item_count; ++block_item_i) {
+                Parse_Node *block_statement = &parse_statement->statement.if_statement.then->statement.compound.block_items[block_item_i];
+                process_tac_statement(instruction_root, block_statement);
+            }
         } else {
             create_tac_instructions(instruction_root, parse_statement->statement.if_statement.then);
         }
@@ -596,13 +610,18 @@ void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statem
                 Tac_Node_Operand return_operand = create_tac_instructions( instruction_root, parse_expression);
                 return_instruction.instruction.return_operand = return_operand;
                 array_append(instruction_root, return_instruction);
-            } else {
-                if  (parse_statement->statement.if_statement.else_clause->type == PARSE_TYPE_STATEMENT_IF) {
-                    process_tac_statement(instruction_root, parse_statement->statement.if_statement.else_clause);
-                } else {
-                    create_tac_instructions(instruction_root, parse_statement->statement.if_statement.else_clause);
+            } else if  (parse_statement->statement.if_statement.else_clause->type == PARSE_TYPE_STATEMENT_IF) {
+                process_tac_statement(instruction_root, parse_statement->statement.if_statement.else_clause);
+            } else if  (parse_statement->statement.if_statement.else_clause->type == PARSE_TYPE_STATEMENT_COMPOUND) {
+                int block_item_count = get_array_count(parse_statement->statement.if_statement.else_clause->statement.compound.block_items);
+                for  (int block_item_i = 0; block_item_i < block_item_count; ++block_item_i) {
+                    Parse_Node *block_statement = &parse_statement->statement.if_statement.else_clause->statement.compound.block_items[block_item_i];
+                    process_tac_statement(instruction_root, block_statement);
                 }
+            } else {
+                create_tac_instructions(instruction_root, parse_statement->statement.if_statement.else_clause);
             }
+
         }
 
         Tac_Node end_label_node = {0};
@@ -633,6 +652,7 @@ void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statem
     }
 
 }
+
 
 void create_tac_functions( Tac_Node **tac_functions, Parse_Node *parse_function)
 {
@@ -671,7 +691,7 @@ Tac_Node * create_tac_nodes( Parse_Node *parse_program)
         int parse_var_count = get_array_count(parse_program->program.functions[i].function.var_table.var_items);
         var_name_index += parse_var_count;
         create_tac_functions( &tac_program.program.functions, &parse_program->program.functions[i]);
-        tac_program.program.functions[i].function.stack_size = var_name_index;
+        tac_program.program.functions[i].function.stack_size = parse_program->program.functions[i].function.stack_count;
         var_name_index = 0;
         label_name_index = 0;
     }
