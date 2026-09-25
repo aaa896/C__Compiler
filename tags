@@ -484,6 +484,7 @@ identifier	./parse.h	/^                String identifier;$/;"	m	struct:Parse_Nod
 identifier	./tac.h	/^    String identifier;$/;"	m	struct:Tac_Node_Operand	typeref:typename:String
 idiv	./code_gen.h	/^        }idiv;$/;"	m	union:Assembly_Node::__anon3ffa3e4c010a	typeref:struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0608
 if_statement	./parse.h	/^                }if_statement;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d9493090a	typeref:struct:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d9493090a::__anond89d94930c08
+increase_scope_id	./parse.c	/^void increase_scope_id(int *scope_id, int *next_scope_id) {$/;"	f	typeref:typename:void
 increment_value	./parse.h	/^                    Parse_Node *increment_value;$/;"	m	union:Parse_Node::__anond89d9493040a::__anond89d94931408::__anond89d94931508::__anond89d9493160a	typeref:typename:Parse_Node *
 init	./parse.h	/^                    Parse_Node *init;$/;"	m	struct:Parse_Node::__anond89d9493040a::__anond89d94930808::__anond89d9493090a::__anond89d94931208	typeref:typename:Parse_Node *
 insert_var_table_item	./parse.c	/^void insert_var_table_item(Var_Table_Item **items, String identifier, int scope_id, int *stack_c/;"	f	typeref:typename:void
@@ -513,7 +514,7 @@ left	./parse.h	/^                Parse_Node *left;$/;"	m	struct:Parse_Node::__an
 lex_program	./lex.c	/^Token * lex_program( String path) $/;"	f	typeref:typename:Token *
 line	./lex.h	/^    String line;$/;"	m	struct:Token	typeref:typename:String
 loop_end_name	./parse.c	/^static char *loop_end_name = "loop_end.";$/;"	v	typeref:typename:char *	file:
-loop_id	./parse.c	/^int loop_id = 0;$/;"	v	typeref:typename:int
+loop_id	./parse.c	/^static int loop_id = 0;$/;"	v	typeref:typename:int	file:
 loop_start_name	./parse.c	/^static char *loop_start_name = "loop_start.";$/;"	v	typeref:typename:char *	file:
 main	./input.c	/^int main(void) {$/;"	f	typeref:typename:int
 main	./input.s	/^    .global main$/;"	s
@@ -536,16 +537,16 @@ operand	./code_gen.h	/^            Assembly_Node_Operand operand;$/;"	m	struct:A
 operand	./tac.h	/^                    Tac_Node_Operand operand;$/;"	m	struct:Tac_Node::__anon4ec2f450010a::__anon4ec2f4500408::__anon4ec2f450050a::__anon4ec2f4500a08	typeref:typename:Tac_Node_Operand
 operand_a	./code_gen.h	/^            Assembly_Node_Operand operand_a ;$/;"	m	struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0908	typeref:typename:Assembly_Node_Operand
 operand_b	./code_gen.h	/^            Assembly_Node_Operand operand_b ;$/;"	m	struct:Assembly_Node::__anon3ffa3e4c010a::__anon3ffa3e4c0908	typeref:typename:Assembly_Node_Operand
-parse_block_items	./parse.c	/^void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token *tokens, int /;"	f	typeref:typename:void
-parse_declaration	./parse.c	/^void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Token *tokens, int /;"	f	typeref:typename:void
-parse_expression	./parse.c	/^void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token *tokens, int *t/;"	f	typeref:typename:void
-parse_factor	./parse.c	/^void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token *tokens, int *token_in/;"	f	typeref:typename:void
-parse_function	./parse.c	/^void parse_function(Parse_Node **functions, Token *tokens, int *token_index) $/;"	f	typeref:typename:void
-parse_program	./parse.c	/^Parse_Node * parse_program( Token *tokens) $/;"	f	typeref:typename:Parse_Node *
-parse_statement	./parse.c	/^void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token *tokens, int *token_i/;"	f	typeref:typename:void
-parse_tokens	./parse.c	/^Parse_Node *parse_tokens( Token *tokens) $/;"	f	typeref:typename:Parse_Node *
+parse_block_items	./parse.c	/^void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int/;"	f	typeref:typename:void
+parse_declaration	./parse.c	/^void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int/;"	f	typeref:typename:void
+parse_expression	./parse.c	/^void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token **tokens, int */;"	f	typeref:typename:void
+parse_factor	./parse.c	/^void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token **tokens, int *token_i/;"	f	typeref:typename:void
+parse_function	./parse.c	/^void parse_function(Parse_Node **functions, Token **tokens, int *token_index) $/;"	f	typeref:typename:void
+parse_program	./parse.c	/^Parse_Node * parse_program( Token **tokens) $/;"	f	typeref:typename:Parse_Node *
+parse_statement	./parse.c	/^void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tokens, int *token_/;"	f	typeref:typename:void
+parse_tokens	./parse.c	/^Parse_Node *parse_tokens( Token **tokens) $/;"	f	typeref:typename:Parse_Node *
 parse_var_to_ir	./tac.c	/^Tac_Node_Operand parse_var_to_ir(Parse_Node *parse_var) {$/;"	f	typeref:typename:Tac_Node_Operand
-peek_binop_type	./parse.c	/^Parse_Type peek_binop_type(Token *tokens, int token_index) $/;"	f	typeref:typename:Parse_Type
+peek_binop_type	./parse.c	/^Parse_Type peek_binop_type(Token **tokens, int token_index) $/;"	f	typeref:typename:Parse_Type
 peek_char	./lex.c	/^static int peek_char(String *line, int index, char c) {$/;"	f	typeref:typename:int	file:
 peek_declaration	./parse.c	/^bool peek_declaration(Token *tokens, int token_index) {$/;"	f	typeref:typename:bool
 peek_parse_typedef	./parse.c	/^b32 peek_parse_typedef(Var_Table *var_table, Token *tokens, int *token_index) {$/;"	f	typeref:typename:b32

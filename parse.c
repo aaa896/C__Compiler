@@ -332,6 +332,42 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
         str_print(node->statement.do_while_statement.break_label_jump->statement.label_statement.identifier);
         printf("\n");
 
+    }else if (node->type == PARSE_TYPE_STATEMENT_FOR) {
+        //print_parse_nodes_2(node->statement.while_statement.continue_label_jump,  padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf("For ");
+        str_print(node->statement.for_statement.continue_label_jump->statement.label_statement.identifier);
+        printf(" (\n ");
+
+        print_char_n(' ', start_padding);
+        printf("Init: (\n");
+        print_parse_nodes_2(node->statement.for_statement.init,  start_padding + padding_increment, padding_increment);
+        printf("\n ");
+        print_char_n(' ', start_padding);
+        printf(")\n");
+            
+        print_char_n(' ', start_padding);
+        printf("Condition: (\n");
+        print_char_n(' ', start_padding);
+        print_parse_nodes_2(node->statement.for_statement.condition_expression,  start_padding + padding_increment, padding_increment);
+        printf("\n ");
+        print_char_n(' ', start_padding);
+        printf(")\n");
+
+        print_char_n(' ', start_padding);
+        printf("Body: (\n");
+        print_char_n(' ', start_padding);
+        print_parse_nodes_2(node->statement.for_statement.body_statement,  start_padding + padding_increment, padding_increment);
+        printf("\n ");
+        print_char_n(' ', start_padding);
+        printf(")\n");
+
+        printf("\n");
+        print_char_n(' ', start_padding);
+        printf(")");
+        str_print(node->statement.for_statement.break_label_jump->statement.label_statement.identifier);
+        printf("\n");
+
     }else if (node->type == PARSE_TYPE_STATEMENT_WHILE) {
         //print_parse_nodes_2(node->statement.while_statement.continue_label_jump,  padding_increment, padding_increment);
         print_char_n(' ', start_padding);
@@ -407,6 +443,10 @@ void print_parse_nodes(Parse_Node *nodes)
     print_parse_nodes_2(nodes, start_padding, padding_increment);
 }
 
+void increase_scope_id(int *scope_id, int *next_scope_id) {
+    *scope_id = *next_scope_id;
+    *next_scope_id += 1;
+}
 
 b32 peek_parse_typedef(Var_Table *var_table, Token *tokens, int *token_index) {
     if (peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr(tokens[*token_index].identifier, "typedef")) {
@@ -883,6 +923,13 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
             array_append(&loop_node.statement.for_statement.continue_label_jump , new_label_continue);
             array_append(&loop_node.statement.for_statement.break_label_jump , new_label_break);
 
+            ASSERT(peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_PAREN));
+            (*token_index) +=1;
+
+            int old_scope_id = scope_id;
+            int old_next_scope_id = *next_scope_id ;
+            increase_scope_id(&scope_id, next_scope_id);
+
             if (peek_declaration(*tokens, *token_index)) {
                 parse_declaration(&loop_node.statement.for_statement.init, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
             } else {
@@ -908,8 +955,21 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
             if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
                 (*token_index) +=1;
             }else {
+                parse_expression(&loop_node.statement.for_statement.post_expression, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+                if (peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_PAREN)) {
+                    (*token_index) +=1;
+                }else ASSERT(0);
+            }
+
+            if (peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_BRACKET)) {
+                *next_scope_id = old_next_scope_id;
+                parse_statement(&loop_node.statement.for_statement.body_statement, var_table,  tokens, token_index, old_scope_id, next_scope_id, stack_count);
+            } else {
                 parse_statement(&loop_node.statement.for_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
             }
+            
+            
+
 
         } else {
             ASSERT(0);

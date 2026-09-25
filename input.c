@@ -1,16 +1,19 @@
 
 int main(void) {
 
-    int x = 4;
-    x +=1;
-    do {
-        x += 1;
-        if (x == 10)
-            continue;
+    int z = 1;
+    for (int x = 10; x < 32; ++x) {
+        for (int y =0 ; y < 3; ++y) {
+            x += y;
+        }
+        
 
+        int y = ~-7;
+        x *=  y;
+        x += 98;
+        z = x;
+    }
 
-    }while (x < 10);
-
-    return x;
+    return z;
 
 }
