@@ -31,7 +31,7 @@ int main(int argc, char**argv)
 
     Token *tokens = lex_program( input_name);
     print_tokens(tokens);
-    Parse_Node *parse_nodes = parse_tokens( tokens);
+    Parse_Node *parse_nodes = parse_tokens( &tokens);
     print_parse_nodes(parse_nodes);
     Tac_Node *tac_nodes = create_tac_nodes( parse_nodes);
     print_tac_nodes(tac_nodes);

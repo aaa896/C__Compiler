@@ -336,19 +336,20 @@ static void process_mov( Assembly_Node **instructions, Assembly_Node mov)
 
 static void process_cmp( Assembly_Node **instructions, Assembly_Node cmp)
 {
-    if (cmp.cmp.operand_b.type == ASSEMBLY_NODE_TYPE_OPERAND_INT) {
+    if (cmp.cmp.operand_a.type == ASSEMBLY_NODE_TYPE_OPERAND_INT) {
         Assembly_Node_Operand r11 = ZERO_STRUCT;
         r11.identifier = str_create_from_cstr( "%r11d");
         r11.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R11;
         Assembly_Node mov = ZERO_STRUCT;
         mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
 
-        mov.mov.src = cmp.cmp.operand_b;
+        mov.mov.src = cmp.cmp.operand_a;
         mov.mov.dest = r11;
-        cmp.cmp.operand_b = r11;
+        cmp.cmp.operand_a = r11;
 
         array_append(instructions, mov);
     }
+
     if (cmp.cmp.operand_a.type == ASSEMBLY_NODE_TYPE_OPERAND_STACK &&
             cmp.cmp.operand_b.type == ASSEMBLY_NODE_TYPE_OPERAND_STACK) {
         Assembly_Node mov_1 = ZERO_STRUCT;

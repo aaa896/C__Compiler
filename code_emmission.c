@@ -114,9 +114,9 @@ void emmit_instructions( String *output , Assembly_Node *node)
             str_append_cstr( output, "\n");
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_CMP) {
             str_append_cstr( output, "    cmpl ");
-            str_append_str( output, instruction->cmp.operand_a.identifier);
-            str_append_cstr( output, ",");
             str_append_str( output, instruction->cmp.operand_b.identifier);
+            str_append_cstr( output, ",");
+            str_append_str( output, instruction->cmp.operand_a.identifier);
             str_append_cstr( output, "\n");
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK) {
             str_append_cstr( output, "    subq $");

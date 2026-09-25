@@ -106,6 +106,16 @@ void print_tokens(Token *tokens) {
             printf("If \n");
         }else if (tokens[i].type == TOKEN_TYPE_ELSE) {
             printf("Else \n");
+        }else if (tokens[i].type == TOKEN_TYPE_DO) {
+            printf("Do \n");
+        }else if (tokens[i].type == TOKEN_TYPE_WHILE) {
+            printf("While \n");
+        }else if (tokens[i].type == TOKEN_TYPE_FOR) {
+            printf("For \n");
+        }else if (tokens[i].type == TOKEN_TYPE_BREAK) {
+            printf("Break \n");
+        }else if (tokens[i].type == TOKEN_TYPE_CONTINUE) {
+            printf("Continue \n");
         }else {
             ASSERT( 0 && "Uknown print token\n");
         }
@@ -159,6 +169,16 @@ Token * lex_program( String path)
                 token.type = TOKEN_TYPE_IF;
             } else if (str_equals_cstr(token.identifier, "else")) {
                 token.type = TOKEN_TYPE_ELSE;
+            } else if (str_equals_cstr(token.identifier, "do")) {
+                token.type = TOKEN_TYPE_DO;
+            } else if (str_equals_cstr(token.identifier, "while")) {
+                token.type = TOKEN_TYPE_WHILE;
+            } else if (str_equals_cstr(token.identifier, "for")) {
+                token.type = TOKEN_TYPE_FOR;
+            } else if (str_equals_cstr(token.identifier, "break")) {
+                token.type = TOKEN_TYPE_BREAK;
+            } else if (str_equals_cstr(token.identifier, "continue")) {
+                token.type = TOKEN_TYPE_CONTINUE;
             }
             token.col = col;
             token.row = row;

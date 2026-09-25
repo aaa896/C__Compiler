@@ -25,6 +25,7 @@
 #define PRECEDENCE_DIVIDE                  50
 #define PRECEDENCE_MODULO                  50
 
+typedef struct Parse_Node  Parse_Node;
 
 
 
@@ -45,6 +46,8 @@ typedef struct  {
     Var_Table_Item *var_items;
     Var_Table_Item *label_items;
     Typedef_Item *typedef_items;
+    Parse_Node *continue_label;
+    Parse_Node *break_label;
 }Var_Table;
 
 typedef enum Parse_Type  Parse_Type;
@@ -61,6 +64,11 @@ enum Parse_Type  {
     PARSE_TYPE_STATEMENT_EXPRESSION,
     PARSE_TYPE_STATEMENT_NULL,
     PARSE_TYPE_STATEMENT_COMPOUND,
+    PARSE_TYPE_STATEMENT_DO_WHILE,
+    PARSE_TYPE_STATEMENT_WHILE,
+    PARSE_TYPE_STATEMENT_FOR,
+    PARSE_TYPE_STATEMENT_CONTINUE,
+    PARSE_TYPE_STATEMENT_BREAK,
     
     PARSE_TYPE_EXP_BINOP_EQUAL,
     PARSE_TYPE_EXP_BINOP_SUB,
@@ -99,7 +107,6 @@ enum Parse_Type  {
 };
 
 
-typedef struct Parse_Node  Parse_Node;
 struct Parse_Node  {
     Parse_Type type;
     union {
@@ -123,21 +130,55 @@ struct Parse_Node  {
         }block_items;
 
         struct {
-            Parse_Node *expression;
-            struct {
-                Parse_Node *condition;
-                Parse_Node *then;
-                Parse_Node *else_clause;
-            }if_statement;
-            struct {
-                String label_identifier;
-            }goto_statement;
-            struct {
-                String identifier;
-            }label_statement;
-            struct {
-                Parse_Node *block_items;
-            }compound;
+            union {
+                struct {
+                    Parse_Node *expression;
+                }return_statement;
+                struct {
+                    Parse_Node *expression;
+                }expression_statement;
+                struct {
+                    Parse_Node *condition;
+                    Parse_Node *then;
+                    Parse_Node *else_clause;
+                }if_statement;
+                struct {
+                    String label_identifier;
+                }goto_statement;
+                struct {
+                    String identifier;
+                }label_statement;
+                struct {
+                    Parse_Node *block_items;
+                }compound;
+                struct {
+                    Parse_Node *condition_expression;
+                    Parse_Node *body_statement;
+                    Parse_Node *continue_label_jump;
+                    Parse_Node *break_label_jump;
+                }while_statement;
+                struct {
+                    Parse_Node *condition_expression;
+                    Parse_Node *body_statement;
+                    Parse_Node *continue_label_jump;
+                    Parse_Node *break_label_jump;
+                }do_while_statement;
+                struct {
+                    //declaration or expression
+                    Parse_Node *init;
+                    Parse_Node *continue_label_jump;
+                    Parse_Node *condition_expression;
+                    Parse_Node *post_expression;
+                    Parse_Node *body_statement;
+                    Parse_Node *break_label_jump;
+                }for_statement;
+                //struct {
+                //    String label_identifier;
+                //}continue_statement;
+                //struct {
+                //    String label_identifier;
+                //}break_statement;
+            };
         }statement;
 
         struct {
@@ -178,7 +219,7 @@ struct Parse_Node  {
     };
 };
 
-Parse_Node *parse_tokens(Token *tokens) ;
+Parse_Node *parse_tokens(Token **tokens) ;
 void print_parse_nodes(Parse_Node *nodes);
 #endif // _PARSE_H_
 

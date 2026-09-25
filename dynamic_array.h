@@ -77,16 +77,13 @@ do{\
             if ((*array) == 0) {\
                 ASSERT(0);\
             }\
-            int header_space = sizeof(Array_Header) ;\
-            Array_Header *header = (Array_Header*)((uint8_t*)((*array))  - header_space);\
             if (header->count == header->capacity) {\
                 header->capacity *= 2;\
-                int new_size =  header->capacity * sizeof((*array)[0]) + header_space;\
+                int new_size =  header->capacity * sizeof((*array)[0]) + sizeof(Array_Header);\
                 header = (Array_Header*)realloc(header, new_size);\
                 if (!header) assert(0 && "array realloc fail\n");\
-                (*array) = (typeof(*array))((uint8_t*)header + header_space);\
+                (*(array)) = (typeof(*(array)))((uint8_t*)header + sizeof(Array_Header));\
             }\
-            (*array)[header->count] = item;\
         }while(0);\
     }\
     for (int i = count -1; i >= index; --i) {\

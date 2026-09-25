@@ -11,9 +11,21 @@ char *invalid_var_names[] = {
     "return",
 };
 
+static char *loop_start_name = "loop_start.";
+static char *loop_end_name = "loop_end.";
+static int loop_id = 0;
+
+String create_loop_label(char *name, int id) {
+    String str = str_create_from_cstr(name);
+    str_append_int(&str, id);
+    return str;
+}
+
+void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) ;
+bool peek_declaration(Token *tokens, int token_index) ;
 int peek_token(Token *tokens, int token_index, Token_Type type) ;
-void parse_expression(Parse_Node **expression_root,  Var_Table *table, Token *tokens, int *token_index, int min_precedence, int scope_id, int *next_scope_id) ;
-void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token *tokens, int *token_index, int scope_id, int *next_scope_id,int *stack_count) ;
+void parse_expression(Parse_Node **expression_root,  Var_Table *table, Token **tokens, int *token_index, int min_precedence, int scope_id, int *next_scope_id) ;
+void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int *token_index, int scope_id, int *next_scope_id,int *stack_count) ;
 
 void print_char_n(char c, int n) 
 {
@@ -64,7 +76,7 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
     }else if (node->type == PARSE_TYPE_STATEMENT_RETURN)      {
         print_char_n(' ', start_padding);
         printf("Statement: Return (\n");
-        print_parse_nodes_2(node->statement.expression, start_padding + padding_increment, padding_increment);
+        print_parse_nodes_2(node->statement.return_statement.expression, start_padding + padding_increment, padding_increment);
         print_char_n(' ', start_padding);
         printf(" )\n ");
     }else if (node->type == PARSE_TYPE_STATEMENT_NULL)      {
@@ -73,7 +85,7 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
     }else if (node->type == PARSE_TYPE_STATEMENT_EXPRESSION)      {
         print_char_n(' ', start_padding);
         printf("Statement: Expression (\n");
-        print_parse_nodes_2(node->statement.expression, start_padding + padding_increment, padding_increment);
+        print_parse_nodes_2(node->statement.expression_statement.expression, start_padding + padding_increment, padding_increment);
         print_char_n(' ', start_padding);
         printf(" )\n ");
 
@@ -294,6 +306,56 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
 
         }
         print_char_n(' ', start_padding);
+    }else if (node->type == PARSE_TYPE_STATEMENT_DO_WHILE) {
+        //print_parse_nodes_2(node->statement.while_statement.continue_label_jump,  padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf("Do  While ");
+        str_print(node->statement.do_while_statement.continue_label_jump->statement.label_statement.identifier);
+        printf(" (\n ");
+        print_char_n(' ', start_padding);
+        printf("Body (\n");
+        print_parse_nodes_2(node->statement.do_while_statement.body_statement,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(") ");
+        printf("\n");
+        //print_parse_nodes_2(node->statement.while_statement.break_label_jump,   padding_increment, padding_increment);
+
+
+        print_char_n(' ', start_padding);
+        printf("condition (\n");
+        print_parse_nodes_2(node->statement.do_while_statement.condition_expression,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(")\n");
+
+        print_char_n(' ', start_padding);
+        printf(")");
+        str_print(node->statement.do_while_statement.break_label_jump->statement.label_statement.identifier);
+        printf("\n");
+
+    }else if (node->type == PARSE_TYPE_STATEMENT_WHILE) {
+        //print_parse_nodes_2(node->statement.while_statement.continue_label_jump,  padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf("While ");
+        str_print(node->statement.while_statement.continue_label_jump->statement.label_statement.identifier);
+        printf(" (\n ");
+        print_char_n(' ', start_padding);
+        printf("condition (\n");
+        print_parse_nodes_2(node->statement.while_statement.condition_expression,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(")\n");
+        print_char_n(' ', start_padding);
+        printf("Body (\n");
+        print_parse_nodes_2(node->statement.while_statement.body_statement,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(") ");
+        printf("\n");
+        //print_parse_nodes_2(node->statement.while_statement.break_label_jump,   padding_increment, padding_increment);
+
+
+        print_char_n(' ', start_padding);
+        printf(")");
+        str_print(node->statement.while_statement.break_label_jump->statement.label_statement.identifier);
+        printf("\n");
     }else if (node->type == PARSE_TYPE_STATEMENT_GOTO) {
         print_char_n(' ', start_padding);
         printf("Goto  (\n ");
@@ -415,17 +477,17 @@ int peek_token(Token *tokens, int token_index, Token_Type type)
 }
 
 
-void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token *tokens, int *token_index, int scope_id, int*next_scope_id)
+void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token **tokens, int *token_index, int scope_id, int*next_scope_id)
 {
-    if (peek_token(tokens, *token_index, TOKEN_TYPE_NUMBER)) {
+    if (peek_token(*tokens, *token_index, TOKEN_TYPE_NUMBER)) {
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_INT;
-        factor.expression.factor.int_value = tokens[*token_index].constant;
-        factor.expression.factor.var_name = tokens[*token_index].identifier;
+        factor.expression.factor.int_value = (*tokens)[*token_index].constant;
+        factor.expression.factor.var_name = (*tokens)[*token_index].identifier;
         array_append(factor_root, factor);
         (*token_index)++;
 
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_NEGATE)) {
+    }else if (peek_token((*tokens), *token_index, TOKEN_TYPE_NEGATE)) {
 
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE;
@@ -433,18 +495,18 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token *token
         parse_factor(&(factor.expression.factor.unop_next), var_table , tokens, token_index,scope_id, next_scope_id);
         array_append(factor_root, factor);
 
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
 
         bool post_increment = false;
         {
             ASSERT(*token_index < get_array_count(tokens) -1);
-            Token increment = tokens[*token_index + 1];
+            Token increment = (*tokens)[*token_index + 1];
             post_increment = increment.type == TOKEN_TYPE_INCREMENT;
         }
 
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_VAR;
-        factor.expression.factor.var_name = tokens[*token_index].identifier;
+        factor.expression.factor.var_name = (*tokens)[*token_index].identifier;
         int var_table_index = get_var_table_index(var_table, factor.expression.factor.var_name, scope_id);
         ASSERT( var_table_index != -1);
         factor.expression.factor.int_value = var_table->var_items[var_table_index].stack_index;
@@ -461,11 +523,11 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token *token
         }
         (*token_index)++;
 
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_INCREMENT)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_INCREMENT)) {
 
 
         ASSERT(*token_index < get_array_count(tokens) -1);
-        String var_str = tokens[*token_index + 1].identifier;
+        String var_str = (*tokens)[*token_index + 1].identifier;
 
         int var_table_index = get_var_table_index(var_table, var_str, scope_id);
         ASSERT (var_table_index != -1) ;
@@ -479,32 +541,32 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token *token
 
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_VAR;
-        factor.expression.factor.var_name = tokens[*token_index].identifier;
+        factor.expression.factor.var_name = (*tokens)[*token_index].identifier;
         factor.expression.factor.int_value = var_stack_index;
         factor.expression.factor.scope_id = var_scope_id;
 
         array_append(&pre.expression.factor.increment_value, factor );
         array_append(factor_root, pre);
         *(token_index) +=1;
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_TILDE)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_TILDE)) {
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT;
         (*token_index)++;
         parse_factor(&(factor.expression.factor.unop_next), var_table ,  tokens, token_index,scope_id, next_scope_id);
         array_append(factor_root, factor);
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_EXCLAMATION)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_EXCLAMATION)) {
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_UNOP_LOGICAL_NOT;
         (*token_index)++;
         parse_factor(&(factor.expression.factor.unop_next), var_table ,  tokens, token_index, scope_id, next_scope_id);
         array_append(factor_root, factor);
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_OPEN_PAREN)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_PAREN)) {
 
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_EXP;
         (*token_index)++;
         parse_expression(&(factor.expression.factor.expression),  var_table, tokens, token_index, 0,scope_id, next_scope_id);
-        if (!peek_token(tokens, *token_index, TOKEN_TYPE_CLOSE_PAREN)) {
+        if (!peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_PAREN)) {
             FAIL_MSG("expected exp number type\n");
         }
         (*token_index)++;
@@ -517,93 +579,93 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token *token
 
 
 
-Parse_Type peek_binop_type(Token *tokens, int token_index) 
+Parse_Type peek_binop_type(Token **tokens, int token_index) 
 {
     Parse_Type binop_type = PARSE_TYPE_ERROR;
 
 
-    if (peek_token(tokens, token_index, TOKEN_TYPE_PLUS_EQUAL)                ||
-            peek_token(tokens, token_index, TOKEN_TYPE_ASTERIX_EQUAL)         ||
-            peek_token(tokens, token_index, TOKEN_TYPE_FORWARD_SLASH_EQUAL)   ||
-            peek_token(tokens, token_index, TOKEN_TYPE_PERCENT_EQUAL)         ||
-            peek_token(tokens, token_index, TOKEN_TYPE_AMPERSAND_EQUAL)       ||
-            peek_token(tokens, token_index,   TOKEN_TYPE_VERTICAL_BAR_EQUAL ) ||
-            peek_token(tokens, token_index,TOKEN_TYPE_CARROT_EQUAL)           ||
-            peek_token(tokens, token_index,TOKEN_TYPE_LEFT_SHIFT_EQUAL)       ||
-            peek_token(tokens, token_index,TOKEN_TYPE_RIGHT_SHIFT_EQUAL) )
+    if (peek_token(*tokens, token_index, TOKEN_TYPE_PLUS_EQUAL)                ||
+            peek_token(*tokens, token_index, TOKEN_TYPE_ASTERIX_EQUAL)         ||
+            peek_token(*tokens, token_index, TOKEN_TYPE_FORWARD_SLASH_EQUAL)   ||
+            peek_token(*tokens, token_index, TOKEN_TYPE_PERCENT_EQUAL)         ||
+            peek_token(*tokens, token_index, TOKEN_TYPE_AMPERSAND_EQUAL)       ||
+            peek_token(*tokens, token_index,   TOKEN_TYPE_VERTICAL_BAR_EQUAL ) ||
+            peek_token(*tokens, token_index,TOKEN_TYPE_CARROT_EQUAL)           ||
+            peek_token(*tokens, token_index,TOKEN_TYPE_LEFT_SHIFT_EQUAL)       ||
+            peek_token(*tokens, token_index,TOKEN_TYPE_RIGHT_SHIFT_EQUAL) )
     {
         Token binop = {0};
         ASSERT(token_index >= 1);
-        Token identifier = tokens[token_index -1];
+        Token identifier = (*tokens)[token_index -1];
         ASSERT(identifier.type == TOKEN_TYPE_IDENTIFIER);
-        array_insert(&tokens,token_index + 1, identifier);
-        if (peek_token(tokens, token_index, TOKEN_TYPE_PLUS_EQUAL)) {
+        array_insert(tokens,token_index + 1, identifier);
+        if (peek_token((*tokens), token_index, TOKEN_TYPE_PLUS_EQUAL)) {
             binop.type = TOKEN_TYPE_PLUS;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_ASTERIX_EQUAL)) {
+        } else if (peek_token((*tokens), token_index, TOKEN_TYPE_ASTERIX_EQUAL)) {
             binop.type = TOKEN_TYPE_ASTERIX;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_FORWARD_SLASH_EQUAL)) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_FORWARD_SLASH_EQUAL)) {
             binop.type = TOKEN_TYPE_FORWARD_SLASH;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_PERCENT_EQUAL) ) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_PERCENT_EQUAL) ) {
             binop.type = TOKEN_TYPE_PERCENT;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_AMPERSAND_EQUAL) ) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_AMPERSAND_EQUAL) ) {
             binop.type = TOKEN_TYPE_AMPERSAND;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_VERTICAL_BAR_EQUAL) ) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_VERTICAL_BAR_EQUAL) ) {
             binop.type = TOKEN_TYPE_VERTICAL_BAR;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_CARROT_EQUAL) ) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_CARROT_EQUAL) ) {
             binop.type = TOKEN_TYPE_CARROT;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_LEFT_SHIFT_EQUAL) ) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_LEFT_SHIFT_EQUAL) ) {
             binop.type = TOKEN_TYPE_LEFT_SHIFT;
-        } else if (peek_token(tokens, token_index, TOKEN_TYPE_RIGHT_SHIFT_EQUAL) ) {
+        } else if (peek_token(*tokens, token_index, TOKEN_TYPE_RIGHT_SHIFT_EQUAL) ) {
             binop.type = TOKEN_TYPE_RIGHT_SHIFT;
         } else {
             ASSERT(0);
         }
 
-        tokens[token_index].type = TOKEN_TYPE_EQUAL_SIGN;
-        array_insert(&tokens,token_index + 2, binop);
+        (*tokens)[token_index].type = TOKEN_TYPE_EQUAL_SIGN;
+        array_insert(tokens,(token_index + 2), binop);
     }
 
 
 
-    if (peek_token(tokens, token_index, TOKEN_TYPE_PERCENT) )
+    if (peek_token(*tokens, token_index, TOKEN_TYPE_PERCENT) )
         binop_type = PARSE_TYPE_EXP_BINOP_MODULO;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_NEGATE)) 
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_NEGATE)) 
         binop_type = PARSE_TYPE_EXP_BINOP_SUB;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_ASTERIX))
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_ASTERIX))
         binop_type = PARSE_TYPE_EXP_BINOP_MULTIPLY;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_PLUS))
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_PLUS))
         binop_type = PARSE_TYPE_EXP_BINOP_ADD;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_FORWARD_SLASH))
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_FORWARD_SLASH))
         binop_type = PARSE_TYPE_EXP_BINOP_DIVIDE;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_VERTICAL_BAR) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_VERTICAL_BAR) )
         binop_type = PARSE_TYPE_EXP_BINOP_BITWISE_OR;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_AMPERSAND) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_AMPERSAND) )
         binop_type = PARSE_TYPE_EXP_BINOP_BITWISE_AND;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_CARROT) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_CARROT) )
         binop_type = PARSE_TYPE_EXP_BINOP_BITWISE_XOR;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_LEFT_SHIFT) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_LEFT_SHIFT) )
         binop_type = PARSE_TYPE_EXP_BINOP_BITWISE_SHIFT_LEFT;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_RIGHT_SHIFT) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_RIGHT_SHIFT) )
         binop_type = PARSE_TYPE_EXP_BINOP_BITWISE_SHIFT_RIGHT;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_LESS_THAN) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_LESS_THAN) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_LESS_THAN;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_LESS_THAN_EQUAL_TO) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_LESS_THAN_EQUAL_TO) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_LESS_THAN_EQUAL_TO;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_GREATER_THAN) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_GREATER_THAN) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_GREATER_THAN;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_GREATER_THAN_EQUAL_TO) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_GREATER_THAN_EQUAL_TO) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_GREATER_THAN_EQUAL_TO;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_EQUAL_TO) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_EQUAL_TO) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_EQUAL_TO;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_NOT_EQUAL_TO) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_NOT_EQUAL_TO) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_NOT_EQUAL_TO;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_LOGICAL_AND) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_LOGICAL_AND) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_AND;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_LOGICAL_OR) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_LOGICAL_OR) )
         binop_type = PARSE_TYPE_EXP_BINOP_LOGICAL_OR;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_EQUAL_SIGN) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_EQUAL_SIGN) )
         binop_type = PARSE_TYPE_EXP_BINOP_EQUAL;
-    else if (peek_token(tokens, token_index, TOKEN_TYPE_QUESTION_MARK) )
+    else if (peek_token(*tokens, token_index, TOKEN_TYPE_QUESTION_MARK) )
         binop_type = PARSE_TYPE_EXP_CONDITIONAL;
 
 
@@ -658,7 +720,7 @@ int get_precedence(Parse_Type binop)
 }
 
 
-void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token *tokens, int *token_index, int min_precedence, int scope_id, int * next_scope_id) 
+void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token **tokens, int *token_index, int min_precedence, int scope_id, int * next_scope_id) 
 {
 
     Parse_Node *left = 0;
@@ -675,7 +737,7 @@ void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token
                 parse_expression(&right, var_table, tokens, token_index, binop_precedence ,scope_id, next_scope_id);
             }else if (binop_type == PARSE_TYPE_EXP_CONDITIONAL) {
                 parse_expression(&middle, var_table, tokens, token_index, binop_precedence ,scope_id, next_scope_id);
-                if (!peek_token(tokens, *token_index, TOKEN_TYPE_COLON))
+                if (!peek_token(*tokens, *token_index, TOKEN_TYPE_COLON))
                     ASSERT(0);
                 (*token_index) +=1;
                 parse_expression(&right, var_table, tokens, token_index, binop_precedence ,scope_id, next_scope_id);
@@ -708,49 +770,156 @@ void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token
 }
 
 
-void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token *tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) 
+void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) 
 {
-    if ( peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr(tokens[*token_index].identifier, "return")) {
+    if ( peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr((*tokens)[*token_index].identifier, "return")) {
 
         Parse_Node return_statement = ZERO_STRUCT;
         return_statement.type = PARSE_TYPE_STATEMENT_RETURN;
         (*token_index)++;
 
-        parse_expression(&return_statement.statement.expression, var_table, tokens, token_index,0,scope_id, next_scope_id);
+        parse_expression(&return_statement.statement.return_statement.expression, var_table, tokens, token_index,0,scope_id, next_scope_id);
 
-        if (!peek_token(tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+        if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
             FAIL_MSG( "expected statement end ; type\n");
         }
         (*token_index)++;
         array_append(statements, return_statement);
-    }else if ( peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr(tokens[*token_index].identifier, "goto")) {
+    }else if ( peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER) && str_equals_cstr((*tokens)[*token_index].identifier, "goto")) {
         Parse_Node goto_statement = {0};
         goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
         (*token_index) ++;
-        ASSERT(tokens[*token_index].type == TOKEN_TYPE_IDENTIFIER);
-        goto_statement.statement.goto_statement.label_identifier = tokens[*token_index].identifier;
+        ASSERT((*tokens)[*token_index].type == TOKEN_TYPE_IDENTIFIER);
+        goto_statement.statement.goto_statement.label_identifier = (*tokens)[*token_index].identifier;
         (*token_index) ++;
         array_append(statements, goto_statement);
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
 
         Parse_Node null_statement = ZERO_STRUCT;
         null_statement.type = PARSE_TYPE_STATEMENT_NULL;
         (*token_index)++;
         array_append(statements, null_statement);
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_IF)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_BREAK)) {
+        ASSERT(var_table->break_label);
+        Parse_Node goto_statement = {0};
+        goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
+        goto_statement.statement.goto_statement.label_identifier = var_table->break_label->statement.label_statement.identifier;
+        array_append(statements, goto_statement);
+        (*token_index) ++;
+        if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+            FAIL_MSG( "expected statement end ; type\n");
+        }
+        (*token_index)++;
+
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_CONTINUE)) {
+        ASSERT(var_table->continue_label);
+        Parse_Node goto_statement = {0};
+        goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
+        goto_statement.statement.goto_statement.label_identifier = var_table->continue_label->statement.label_statement.identifier;
+        array_append(statements, goto_statement);
+        (*token_index) ++;
+        if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+            FAIL_MSG( "expected statement end ; type\n");
+        }
+        (*token_index)++;
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_IF)) {
         Parse_Node if_node = {0};
         if_node.type = PARSE_TYPE_STATEMENT_IF;
         (*token_index) +=1;
-        ASSERT(tokens[*token_index].type == TOKEN_TYPE_OPEN_PAREN);
+        ASSERT((*tokens)[*token_index].type == TOKEN_TYPE_OPEN_PAREN);
         parse_expression(&if_node.statement.if_statement.condition , var_table,  tokens, token_index,0,scope_id, next_scope_id);
         parse_statement(&if_node.statement.if_statement.then , var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
-        if (peek_token(tokens, *token_index, TOKEN_TYPE_ELSE) ) {
+        if (peek_token(*tokens, *token_index, TOKEN_TYPE_ELSE) ) {
             (*token_index) +=1 ;
             parse_statement(&if_node.statement.if_statement.else_clause,  var_table,  tokens, token_index,scope_id, next_scope_id,stack_count);
         } 
         array_append(statements, if_node);
 
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_OPEN_BRACKET)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_WHILE) || 
+            peek_token(*tokens, *token_index, TOKEN_TYPE_FOR)   ||
+            peek_token(*tokens, *token_index, TOKEN_TYPE_DO)            
+            ) {
+
+        bool found_token_type_while =  peek_token(*tokens, *token_index, TOKEN_TYPE_WHILE) ;
+        bool found_token_type_for = peek_token(*tokens, *token_index, TOKEN_TYPE_FOR)  ;
+        bool found_token_type_do_while = peek_token(*tokens, *token_index, TOKEN_TYPE_DO);
+        Parse_Node loop_node = {0};
+        (*token_index) +=1;
+        if (!found_token_type_do_while) 
+            ASSERT((*tokens)[*token_index].type == TOKEN_TYPE_OPEN_PAREN);
+        Parse_Node *label_continue = var_table->continue_label;
+        Parse_Node *label_break    = var_table->break_label;
+        Parse_Node new_label_continue = {0};
+        new_label_continue.type = PARSE_TYPE_STATEMENT_LABEL;
+        new_label_continue.statement.label_statement.identifier = create_loop_label(loop_start_name, loop_id);
+        Parse_Node new_label_break    = {0};
+        new_label_break.type = PARSE_TYPE_STATEMENT_LABEL;
+        new_label_break.statement.label_statement.identifier = create_loop_label(loop_end_name, loop_id);
+        ++loop_id;
+
+        var_table->continue_label = &new_label_continue;
+        var_table->break_label = &new_label_break;
+        if (found_token_type_while) {
+            loop_node.type = PARSE_TYPE_STATEMENT_WHILE;
+            array_append(&loop_node.statement.while_statement.continue_label_jump , new_label_continue);
+            array_append(&loop_node.statement.while_statement.break_label_jump , new_label_break);
+            parse_expression(&loop_node.statement.while_statement.condition_expression, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+            parse_statement(&loop_node.statement.while_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+        }else if (found_token_type_do_while) {
+            loop_node.type = PARSE_TYPE_STATEMENT_DO_WHILE;
+            array_append(&loop_node.statement.do_while_statement.continue_label_jump , new_label_continue);
+            array_append(&loop_node.statement.do_while_statement.break_label_jump , new_label_break);
+            parse_statement(&loop_node.statement.do_while_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+
+            if (!peek_token(*tokens, *token_index, TOKEN_TYPE_WHILE)) 
+                ASSERT(0);
+            *token_index +=1;
+            parse_expression(&loop_node.statement.do_while_statement.condition_expression, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+            if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) 
+                ASSERT(0);
+            *token_index +=1;
+        }else if (found_token_type_for) {
+            loop_node.type = PARSE_TYPE_STATEMENT_FOR;
+            array_append(&loop_node.statement.for_statement.continue_label_jump , new_label_continue);
+            array_append(&loop_node.statement.for_statement.break_label_jump , new_label_break);
+
+            if (peek_declaration(*tokens, *token_index)) {
+                parse_declaration(&loop_node.statement.for_statement.init, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+            } else {
+                if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+                    (*token_index) +=1;
+                }else {
+                    parse_expression(&loop_node.statement.for_statement.init, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+                    if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+                        (*token_index) +=1;
+                    }else ASSERT(0);
+                }
+            }
+
+            if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+                (*token_index) +=1;
+            }else {
+                parse_expression(&loop_node.statement.for_statement.condition_expression, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+                if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+                    (*token_index) +=1;
+                }else ASSERT(0);
+            }
+
+            if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+                (*token_index) +=1;
+            }else {
+                parse_statement(&loop_node.statement.for_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+            }
+
+        } else {
+            ASSERT(0);
+        }
+
+        array_append(statements, loop_node);
+        var_table->continue_label = label_continue;
+        var_table->break_label = label_break;
+
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_BRACKET)) {
         //ASSERT(0);
         Parse_Node compound_statement = {0};
         compound_statement.type = PARSE_TYPE_STATEMENT_COMPOUND;
@@ -768,10 +937,10 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token *toke
 
         array_append(statements, compound_statement);
 
-    }else if (peek_token(tokens, *token_index, TOKEN_TYPE_LABEL)) {
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_LABEL)) {
         Parse_Node label_statement = {0};
         label_statement.type = PARSE_TYPE_STATEMENT_LABEL;
-        label_statement.statement.label_statement.identifier = tokens[*token_index].identifier;
+        label_statement.statement.label_statement.identifier = (*tokens)[*token_index].identifier;
         int table_count = get_array_count(var_table->label_items);
         for (int i = 0; table_count; ++i) {
             Var_Table_Item item = var_table->label_items[i];
@@ -785,9 +954,9 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token *toke
 
         Parse_Node expression_statement = ZERO_STRUCT;
         expression_statement.type = PARSE_TYPE_STATEMENT_EXPRESSION;
-        parse_expression(&expression_statement.statement.expression, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+        parse_expression(&expression_statement.statement.expression_statement.expression, var_table,  tokens, token_index,0,scope_id, next_scope_id);
 
-        if (!peek_token(tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
+        if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
             FAIL_MSG( "expected statement end ; type\n");
         }
         (*token_index)++;
@@ -797,24 +966,24 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token *toke
     return ;
 }
 
-void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Token *tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) 
+void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) 
 {
-    if (!peek_token(tokens, *token_index,TOKEN_TYPE_IDENTIFIER)) {
+    if (!peek_token(*tokens, *token_index,TOKEN_TYPE_IDENTIFIER)) {
         ASSERT(0);
     }
-    if (!str_equals_cstr(tokens[*token_index].identifier, "int")) {
+    if (!str_equals_cstr((*tokens)[*token_index].identifier, "int")) {
         ASSERT(0);
     }
     *token_index += 1;
 
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
         ASSERT(0);
     }
     Parse_Node declaration = {0};
     declaration.type = PARSE_TYPE_STATEMENT_DECLARATION;
     Parse_Node l_value = {0};
     l_value.type = PARSE_TYPE_EXP_FACTOR_VAR;
-    l_value.expression.factor.var_name = str_clone( tokens[*token_index].identifier);
+    l_value.expression.factor.var_name = str_clone( (*tokens)[*token_index].identifier);
     int invalid_var_name_count = ARRAY_COUNT(invalid_var_names);
     for (int i = 0; i < invalid_var_name_count; ++i) {
         if (str_equals_cstr(l_value.expression.factor.var_name, invalid_var_names[i]))
@@ -843,12 +1012,12 @@ void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Tok
 
 
     *token_index += 1;
-    if (peek_token(tokens, *token_index, TOKEN_TYPE_EQUAL_SIGN)) {
+    if (peek_token(*tokens, *token_index, TOKEN_TYPE_EQUAL_SIGN)) {
         *token_index += 1;
         parse_expression(&declaration.declaration.r_value,  var_table,  tokens, token_index, 0,scope_id, next_scope_id) ;
     } 
 
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_SEMICOLON))  {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON))  {
         ASSERT(0);
     }
     *token_index +=1;
@@ -858,30 +1027,39 @@ void parse_declaration( Parse_Node **block_item_root,  Var_Table *var_table, Tok
 
 }
 
-void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token *tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) {
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_OPEN_BRACKET)) {
+bool peek_declaration(Token *tokens, int token_index) {
+    bool identifier =  peek_token(tokens , token_index, TOKEN_TYPE_IDENTIFIER );
+    bool second_identifier =  peek_token(tokens , token_index + 1, TOKEN_TYPE_IDENTIFIER );
+    bool declaration = identifier && (!str_equals_cstr(tokens[token_index].identifier, "return")) && 
+        (!str_equals_cstr(tokens[token_index].identifier, "goto"))  && second_identifier;
+    return declaration;
+}
+
+void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int *token_index, int scope_id, int *next_scope_id, int *stack_count) {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_BRACKET)) {
         FAIL_MSG("expected function ( \n");
     }
     ++(*token_index);
 
-    while (! peek_token(tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET)) {
-        while(peek_parse_typedef(var_table, tokens, token_index));
-        bool identifier =  peek_token(tokens , *token_index, TOKEN_TYPE_IDENTIFIER );
-        bool second_identifier =  peek_token(tokens , *token_index + 1, TOKEN_TYPE_IDENTIFIER );
-        bool declaration = identifier && (!str_equals_cstr(tokens[*token_index].identifier, "return")) && 
-            (!str_equals_cstr(tokens[*token_index].identifier, "goto"))  && second_identifier;
+    while (! peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET)) {
+        while(peek_parse_typedef(var_table, *tokens, token_index));
+        bool declaration = peek_declaration(*tokens, *token_index);
+        //bool identifier =  peek_token(*tokens , *token_index, TOKEN_TYPE_IDENTIFIER );
+        //bool second_identifier =  peek_token(*tokens , *token_index + 1, TOKEN_TYPE_IDENTIFIER );
+        //bool declaration = identifier && (!str_equals_cstr(tokens[*token_index].identifier, "return")) && 
+        //    (!str_equals_cstr(tokens[*token_index].identifier, "goto"))  && second_identifier;
         if (declaration) {
-            if (!str_equals_cstr(tokens[*token_index].identifier, "int")) {
+            if (!str_equals_cstr((*tokens)[*token_index].identifier, "int")) {
                 //TODO fix typedef working as asign
                 String type_def = {0};
                 int local_table_count = get_array_count(var_table->typedef_items);
                 bool match_type = false;
                 for (int i = 0 ; i < local_table_count; ++i) {
                     Typedef_Item item = var_table->typedef_items[i];
-                    if (str_equals_str(item.def, tokens[*token_index].identifier)) {
+                    if (str_equals_str(item.def, (*tokens)[*token_index].identifier)) {
                         if (str_equals_cstr(item.type, "int")) {
                             match_type = true;
-                            tokens[*token_index].identifier =  str_create_from_cstr("int");
+                            (*tokens)[*token_index].identifier =  str_create_from_cstr("int");
                             break;
                         } else {
                             ASSERT(0);
@@ -896,47 +1074,47 @@ void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Tok
         }else {
             parse_statement(block_item_root, var_table, tokens, token_index,scope_id, next_scope_id,stack_count);
         }
-        int total_tokens = get_array_count(tokens);
-        if (total_tokens <= *token_index) {
-            ASSERT(0);
-        }
+    //    int total_tokens = get_array_count(tokens);
+    //    if (total_tokens <= *token_index) {
+    //        ASSERT(0);
+    //    }
 
     }
     ++(*token_index);
 
 }
 
-void parse_function(Parse_Node **functions, Token *tokens, int *token_index) 
+void parse_function(Parse_Node **functions, Token **tokens, int *token_index) 
 {
     int stack_count = 0;
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
         FAIL_MSG("expected function return type\n");
     }
     Parse_Node function  = ZERO_STRUCT;
     function.type = PARSE_TYPE_FUNCTION;
-    function.function.return_value_name = str_clone( tokens[*token_index].identifier);
+    function.function.return_value_name = str_clone( (*tokens)[*token_index].identifier);
     ++(*token_index);
 
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
         FAIL_MSG( "expected function return type\n");
     }
-    function.function.name = str_clone( tokens[*token_index].identifier);
+    function.function.name = str_clone( (*tokens)[*token_index].identifier);
     ++(*token_index);
 
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_OPEN_PAREN)) {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_PAREN)) {
         FAIL_MSG("expected function ( \n");
     }
     ++(*token_index);
 
-    if (peek_token(tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
-        if (!str_equals_cstr(tokens[*token_index].identifier, "void")) {
+    if (peek_token(*tokens, *token_index, TOKEN_TYPE_IDENTIFIER)) {
+        if (!str_equals_cstr((*tokens)[*token_index].identifier, "void")) {
             FAIL_MSG("Function arg non void\n");
         }
         ++(*token_index);
     }
 
 
-    if (!peek_token(tokens, *token_index, TOKEN_TYPE_CLOSE_PAREN)) {
+    if (!peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_PAREN)) {
         FAIL_MSG("expected function ( \n");
     }
     ++(*token_index);
@@ -946,7 +1124,7 @@ void parse_function(Parse_Node **functions, Token *tokens, int *token_index)
     int next_scope_id = 1;
     parse_block_items( &function.function.block_items,  &function.function.var_table, tokens, token_index, scope_id, &next_scope_id, &stack_count);
 
-    //if (!peek_token(tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET)) {
+    //if (!peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET)) {
     //    FAIL_MSG("expected function } \n");
     //}
     function.function.stack_count = stack_count;
@@ -955,14 +1133,14 @@ void parse_function(Parse_Node **functions, Token *tokens, int *token_index)
     return ;
 }
 
-Parse_Node * parse_program( Token *tokens) 
+Parse_Node * parse_program( Token **tokens) 
 {
     Parse_Node program = ZERO_STRUCT;
     program.type = PARSE_TYPE_PROGRAM;
     int token_index = 0;
     //while(peek_parse_typedef(&program.program.function_table, tokens, &token_index));
     parse_function(&program.program.functions, tokens, &token_index);
-    int total_tokens = get_array_count(tokens);
+    int total_tokens = get_array_count(*tokens);
     if (total_tokens != token_index) {
         FAIL_MSG("Not all tokens parsed\n");
     }
@@ -974,7 +1152,7 @@ Parse_Node * parse_program( Token *tokens)
 
 
 
-Parse_Node *parse_tokens( Token *tokens) 
+Parse_Node *parse_tokens( Token **tokens) 
 {
     Parse_Node *parse_nodes =  parse_program( tokens);
     return parse_nodes;
