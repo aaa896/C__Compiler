@@ -18,8 +18,7 @@ typedef struct {
 
 
 
-#define get_array_header(array)  ((Array_Header*)((uint8_t*)((array))  - sizeof(Array_Header)))
-#define get_array_count(array)   ((array) ? get_array_header(array)->count : 0)
+#define get_array_count(array)   ((array) ? ((Array_Header*)(((uint8_t*)(array))  - sizeof(Array_Header)))->count : 0)
 #define get_array_tail(array)    ( array[get_array_count(array) -1])
 
 #define create_array(array, cap)\
@@ -77,13 +76,16 @@ do{\
             if ((*array) == 0) {\
                 ASSERT(0);\
             }\
+            int header_space = sizeof(Array_Header) ;\
+            Array_Header *header = (Array_Header*)((uint8_t*)((*array))  - header_space);\
             if (header->count == header->capacity) {\
                 header->capacity *= 2;\
-                int new_size =  header->capacity * sizeof((*array)[0]) + sizeof(Array_Header);\
+                int new_size =  header->capacity * sizeof((*array)[0]) + header_space;\
                 header = (Array_Header*)realloc(header, new_size);\
                 if (!header) assert(0 && "array realloc fail\n");\
-                (*(array)) = (typeof(*(array)))((uint8_t*)header + sizeof(Array_Header));\
+                (*array) = (typeof(*array))((uint8_t*)header + header_space);\
             }\
+            (*array)[header->count] = item;\
         }while(0);\
     }\
     for (int i = count -1; i >= index; --i) {\

@@ -112,6 +112,12 @@ void print_tokens(Token *tokens) {
             printf("While \n");
         }else if (tokens[i].type == TOKEN_TYPE_FOR) {
             printf("For \n");
+        }else if (tokens[i].type == TOKEN_TYPE_SWITCH) {
+            printf("Switch \n");
+        }else if (tokens[i].type == TOKEN_TYPE_CASE) {
+            printf("Case \n");
+        }else if (tokens[i].type == TOKEN_TYPE_DEFAULT) {
+            printf("Default \n");
         }else if (tokens[i].type == TOKEN_TYPE_BREAK) {
             printf("Break \n");
         }else if (tokens[i].type == TOKEN_TYPE_CONTINUE) {
@@ -154,10 +160,16 @@ Token * lex_program( String path)
             identifier.data = &program.data[i];
 
             for (; identifier.count + i < program.size; ++identifier.count) {
+
                 if (!isalnum(program.data[i + identifier.count])) {
-                    if (program.data[i + identifier.count] == ':') {
-                        token.type = TOKEN_TYPE_LABEL;
-                        ++i;
+
+
+            String str = str_create_from_sv(identifier);
+                    if (!str_equals_cstr(str, "default")) {
+                        if (program.data[i + identifier.count] == ':') {
+                            token.type = TOKEN_TYPE_LABEL;
+                            ++i;
+                        }
                     }
                     break;
                 }
@@ -173,6 +185,12 @@ Token * lex_program( String path)
                 token.type = TOKEN_TYPE_DO;
             } else if (str_equals_cstr(token.identifier, "while")) {
                 token.type = TOKEN_TYPE_WHILE;
+            } else if (str_equals_cstr(token.identifier, "switch")) {
+                token.type = TOKEN_TYPE_SWITCH;
+            } else if (str_equals_cstr(token.identifier, "case")) {
+                token.type = TOKEN_TYPE_CASE;
+            } else if (str_equals_cstr(token.identifier, "default")) {
+                token.type = TOKEN_TYPE_DEFAULT;
             } else if (str_equals_cstr(token.identifier, "for")) {
                 token.type = TOKEN_TYPE_FOR;
             } else if (str_equals_cstr(token.identifier, "break")) {

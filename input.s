@@ -2,67 +2,72 @@
 main:
     pushq %rbp
     movq %rsp, %rbp
-    subq $52 , %rsp
+    subq $40 , %rsp
     movl $1 , -4(%rbp)
-    movl $10 , -8(%rbp)
+    movl $2 , -8(%rbp)
 .Lloop_start.0:
-    cmpl $32,-8(%rbp)
+    cmpl $3,-8(%rbp)
+    movl $0 , -16(%rbp)
+    setl -16(%rbp)
+    movl $0 , %r11d
+    cmpl -16(%rbp),%r11d
+    je .Lloop_end.0
+    cmpl $2,-8(%rbp)
     movl $0 , -20(%rbp)
-    setl -20(%rbp)
+    sete -20(%rbp)
     movl $0 , %r11d
     cmpl -20(%rbp),%r11d
-    je .Lloop_end.0
-    movl $0 , -12(%rbp)
-.Lloop_start.1:
-    cmpl $3,-12(%rbp)
+    jne .Lbody.2
+    cmpl $0,-8(%rbp)
     movl $0 , -24(%rbp)
-    setl -24(%rbp)
+    sete -24(%rbp)
     movl $0 , %r11d
     cmpl -24(%rbp),%r11d
-    je .Lloop_end.1
+    jne .Lbody.8
+    jmp .Lbody.7
+.Lbody.2:
+    cmpl $1,-4(%rbp)
+    movl $0 , -28(%rbp)
+    sete -28(%rbp)
+    movl $0 , %r11d
+    cmpl -28(%rbp),%r11d
+    jne .Lbody.4
+    jmp .Lbody.6
+.Lbody.4:
+    movl $0 , -12(%rbp)
+.Lloop_start.5:
+    cmpl $32,-12(%rbp)
+    movl $0 , -32(%rbp)
+    setl -32(%rbp)
+    movl $0 , %r11d
+    cmpl -32(%rbp),%r11d
+    je .Lloop_end.5
     movl -8(%rbp) , %r10d
-    movl %r10d , -28(%rbp)
-    movl -12(%rbp) , %r10d
-    addl %r10d , -28(%rbp)
-    movl -28(%rbp) , %r10d
-    movl %r10d , -8(%rbp)
-    movl -12(%rbp) , %r10d
-    movl %r10d , -32(%rbp)
-    addl $1 , -32(%rbp)
-    movl -32(%rbp) , %r10d
-    movl %r10d , -12(%rbp)
-    jmp .Lloop_start.1
-.Lloop_end.1:
-    movl $7 , -36(%rbp)
-    negl -36(%rbp)
+    movl %r10d , -36(%rbp)
+    addl $4 , -36(%rbp)
     movl -36(%rbp) , %r10d
+    movl %r10d , -8(%rbp)
+    movl -12(%rbp) , %r10d
     movl %r10d , -40(%rbp)
-    notl -40(%rbp)
+    addl $1 , -40(%rbp)
     movl -40(%rbp) , %r10d
-    movl %r10d , -16(%rbp)
-    movl -8(%rbp) , %r10d
-    movl %r10d , -44(%rbp)
-    movl -16(%rbp) , %r10d
-    movl -44(%rbp) , %r11d
-    imull %r10d , %r11d
-    movl %r11d , -44(%rbp)
-    movl -44(%rbp) , %r10d
-    movl %r10d , -8(%rbp)
-    movl -8(%rbp) , %r10d
-    movl %r10d , -48(%rbp)
-    addl $98 , -48(%rbp)
-    movl -48(%rbp) , %r10d
-    movl %r10d , -8(%rbp)
-    movl -8(%rbp) , %r10d
-    movl %r10d , -4(%rbp)
-    movl -8(%rbp) , %r10d
-    movl %r10d , -52(%rbp)
-    addl $1 , -52(%rbp)
-    movl -52(%rbp) , %r10d
-    movl %r10d , -8(%rbp)
+    movl %r10d , -12(%rbp)
+    jmp .Lloop_start.5
+.Lloop_end.5:
+    jmp .Lloop_start.0
+.Lbody.6:
+    jmp .Lbreak.3
+.Lbreak.3:
+    jmp .Lbreak.1
+.Lbody.7:
+    movl $23 , -8(%rbp)
+.Lbody.8:
+    movl $2 , -8(%rbp)
+    jmp .Lbreak.1
+.Lbreak.1:
     jmp .Lloop_start.0
 .Lloop_end.0:
-    movl -4(%rbp) , %eax
+    movl -8(%rbp) , %eax
     movq %rbp, %rsp
     popq %rbp
     ret

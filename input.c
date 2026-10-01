@@ -1,19 +1,32 @@
 
 int main(void) {
+//
+    int y = 1;
+    int x = 2;
 
-    int z = 1;
-    for (int x = 10; x < 32; ++x) {
-        for (int y =0 ; y < 3; ++y) {
-            x += y;
+    while (x < 3) {
+        switch (x) {
+            case 2:
+                switch(y)  {
+                    case 1:
+                        for (int i = 0; i < 32; ++i) {
+                            x += 4;
+                        }
+                        continue;
+                    default:
+                        break;
+                }
+
+                break;
+            default:
+                x = 23;
+            case 0: {
+                        x = 2;
+                        break;
+                    }
+
+
         }
-        
-
-        int y = ~-7;
-        x *=  y;
-        x += 98;
-        z = x;
     }
-
-    return z;
-
+    return x;
 }

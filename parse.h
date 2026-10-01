@@ -46,8 +46,14 @@ typedef struct  {
     Var_Table_Item *var_items;
     Var_Table_Item *label_items;
     Typedef_Item *typedef_items;
+
     Parse_Node *continue_label;
     Parse_Node *break_label;
+
+    Parse_Node *switch_var;
+    Parse_Node **case_statements;
+    Parse_Node **default_statement;
+    int default_statement_index;
 }Var_Table;
 
 typedef enum Parse_Type  Parse_Type;
@@ -67,6 +73,9 @@ enum Parse_Type  {
     PARSE_TYPE_STATEMENT_DO_WHILE,
     PARSE_TYPE_STATEMENT_WHILE,
     PARSE_TYPE_STATEMENT_FOR,
+    PARSE_TYPE_STATEMENT_SWITCH,
+    PARSE_TYPE_STATEMENT_CASE,
+    PARSE_TYPE_STATEMENT_DEFAULT,
     PARSE_TYPE_STATEMENT_CONTINUE,
     PARSE_TYPE_STATEMENT_BREAK,
     
@@ -172,6 +181,33 @@ struct Parse_Node  {
                     Parse_Node *body_statement;
                     Parse_Node *break_label_jump;
                 }for_statement;
+                struct {
+                    Parse_Node *switch_var;
+                    //Parse_Node *body_statement;
+
+                    int default_statement_index;
+
+                    Parse_Node *break_label_jump;
+                    Parse_Node *continue_label_jump;
+
+                    Parse_Node *case_statements;
+                    Parse_Node *default_statement;
+                }switch_statement;
+                struct {
+                    //Parse_Node *switch_var;
+                    Parse_Node *number;
+                    Parse_Node *body_statement;
+                    Parse_Node *body_label_jump;
+
+                    //Parse_Node *break_label_jump;
+                    //Parse_Node *continue_label_jump;
+                }case_statement;
+                struct {
+                    Parse_Node *body_statement;
+                    Parse_Node *body_label_jump;
+                    //Parse_Node *break_label_jump;
+                    //Parse_Node *continue_label_jump;
+                }default_statement;
                 //struct {
                 //    String label_identifier;
                 //}continue_statement;
@@ -222,4 +258,5 @@ struct Parse_Node  {
 Parse_Node *parse_tokens(Token **tokens) ;
 void print_parse_nodes(Parse_Node *nodes);
 #endif // _PARSE_H_
+
 

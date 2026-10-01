@@ -11,11 +11,13 @@ char *invalid_var_names[] = {
     "return",
 };
 
+static char *body_name = "body.";
+static char *break_name = "break.";
 static char *loop_start_name = "loop_start.";
 static char *loop_end_name = "loop_end.";
 static int loop_id = 0;
 
-String create_loop_label(char *name, int id) {
+static String create_label(char *name, int id) {
     String str = str_create_from_cstr(name);
     str_append_int(&str, id);
     return str;
@@ -345,7 +347,7 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
         printf("\n ");
         print_char_n(' ', start_padding);
         printf(")\n");
-            
+
         print_char_n(' ', start_padding);
         printf("Condition: (\n");
         print_char_n(' ', start_padding);
@@ -428,6 +430,55 @@ void print_parse_nodes_2(Parse_Node *node, int start_padding, int padding_increm
         print_parse_nodes_2(node->expression.conditional.false_expression,  start_padding + padding_increment, padding_increment);
         print_char_n(' ', start_padding);
         printf(")\n");
+    }else if (node->type == PARSE_TYPE_STATEMENT_SWITCH) {
+        print_char_n(' ', start_padding);
+        printf("Switch  ( \n");
+        print_parse_nodes_2(node->statement.switch_statement.break_label_jump,  start_padding + padding_increment, padding_increment);
+        if (node->statement.switch_statement.continue_label_jump)
+            print_parse_nodes_2(node->statement.switch_statement.continue_label_jump,  start_padding + padding_increment, padding_increment);
+        print_parse_nodes_2(node->statement.switch_statement.switch_var,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(" ) {\n");
+        int case_statement_count = get_array_count(node->statement.switch_statement.case_statements);
+        for (int i = 0; i < case_statement_count; ++i) {
+            print_parse_nodes_2(&node->statement.switch_statement.case_statements[i],  start_padding + padding_increment, padding_increment);
+        }
+        int default_statement_count = get_array_count(node->statement.switch_statement.default_statement);
+        ASSERT(default_statement_count <= 1);
+        if (default_statement_count)
+            print_parse_nodes_2(node->statement.switch_statement.default_statement,  start_padding + padding_increment, padding_increment);
+        //print_parse_nodes_2(node->statement.switch_statement.body_statement,  start_padding + padding_increment, padding_increment);
+        printf("\n");
+        print_char_n(' ', start_padding);
+        printf("}\n");
+    }else if (node->type == PARSE_TYPE_STATEMENT_CASE) {
+        print_char_n(' ', start_padding);
+        printf("Case  (\n");
+        print_parse_nodes_2(node->statement.case_statement.number,  start_padding + padding_increment, padding_increment);
+        print_parse_nodes_2(node->statement.case_statement.body_label_jump,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(" ) {\n");
+        int case_body_count = get_array_count(node->statement.case_statement.body_statement);
+        for (int i = 0; i < case_body_count; ++i) {
+            print_parse_nodes_2(&node->statement.case_statement.body_statement[i],  start_padding + padding_increment, padding_increment);
+        }
+        print_char_n(' ', start_padding);
+        printf("}\n");
+
+    }else if (node->type == PARSE_TYPE_STATEMENT_DEFAULT) {
+        print_char_n(' ', start_padding);
+        printf("Default  (\n");
+        print_parse_nodes_2(node->statement.default_statement.body_label_jump,  start_padding + padding_increment, padding_increment);
+        //print_parse_nodes_2(node->statement.default_statement.break_label_jump,  start_padding + padding_increment, padding_increment);
+        //print_parse_nodes_2(node->statement.default_statement.continue_label_jump,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf(" ) {\n");
+        //print_parse_nodes_2(node->statement.case_statement.number,  start_padding + padding_increment, padding_increment);
+        //print_char_n(' ', start_padding);
+        //printf(" ) {\n");
+        print_parse_nodes_2(node->statement.default_statement.body_statement,  start_padding + padding_increment, padding_increment);
+        print_char_n(' ', start_padding);
+        printf("}\n");
     }else {
         FAIL_MSG("unknown parse  print\n");
     }
@@ -868,12 +919,133 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         (*token_index) +=1;
         ASSERT((*tokens)[*token_index].type == TOKEN_TYPE_OPEN_PAREN);
         parse_expression(&if_node.statement.if_statement.condition , var_table,  tokens, token_index,0,scope_id, next_scope_id);
-        parse_statement(&if_node.statement.if_statement.then , var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+        parse_statement(&if_node.statement.if_statement.then , var_table,  tokens, token_index,scope_id, next_scope_id, stack_count );
         if (peek_token(*tokens, *token_index, TOKEN_TYPE_ELSE) ) {
             (*token_index) +=1 ;
             parse_statement(&if_node.statement.if_statement.else_clause,  var_table,  tokens, token_index,scope_id, next_scope_id,stack_count);
         } 
         array_append(statements, if_node);
+
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_SWITCH)) {
+        Parse_Node switch_statement = {0};
+        switch_statement.type = PARSE_TYPE_STATEMENT_SWITCH;
+        (*token_index) +=1;
+
+        //Parse_Node *label_continue = var_table->continue_label;
+        Parse_Node *label_break        = var_table->break_label;
+        Parse_Node *switch_var         = var_table->switch_var;
+        Parse_Node **case_statements   = var_table->case_statements;
+        Parse_Node **default_statement = var_table->default_statement;
+        int default_statement_index    = var_table->default_statement_index;
+        //var_table->continue_label = 0;
+
+        Parse_Node new_label_break    = {0};
+        new_label_break.type = PARSE_TYPE_STATEMENT_LABEL;
+        new_label_break.statement.label_statement.identifier = create_label(break_name, loop_id);
+        ++loop_id;
+
+        var_table->break_label = &new_label_break;
+        var_table->case_statements = &switch_statement.statement.switch_statement.case_statements;
+        var_table->default_statement  = &switch_statement.statement.switch_statement.default_statement;
+
+        array_append(&switch_statement.statement.switch_statement.break_label_jump, new_label_break);
+        if (var_table->continue_label) {
+            Parse_Node continue_label = {0};
+            continue_label.type = PARSE_TYPE_STATEMENT_LABEL;
+            continue_label.statement.label_statement.identifier = str_clone(var_table->continue_label->statement.label_statement.identifier);
+            array_append(&switch_statement.statement.switch_statement.continue_label_jump, continue_label);
+        }
+
+        ASSERT(peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_PAREN));
+        parse_expression(&switch_statement.statement.switch_statement.switch_var, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+        ASSERT(switch_statement.statement.switch_statement.switch_var->type == PARSE_TYPE_EXP_FACTOR_EXP);
+        ASSERT(switch_statement.statement.switch_statement.switch_var->expression.factor.expression->type == PARSE_TYPE_EXP_FACTOR_VAR);
+        var_table->switch_var = switch_statement.statement.switch_statement.switch_var;
+
+        ASSERT(peek_token(*tokens, *token_index, TOKEN_TYPE_OPEN_BRACKET));
+        Parse_Node *body = {0};
+        parse_statement(&body, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+        int body_statement_count = get_array_count(body->statement.compound.block_items);
+        ASSERT(body_statement_count == 0);
+        switch_statement.statement.switch_statement.default_statement_index = var_table->default_statement_index;
+
+            //node.statement.default_statement.switch_statement_index = get_array_count(var_table->case_statements);
+
+
+
+        var_table->switch_var              = switch_var;
+        var_table->break_label             = label_break;
+        var_table->case_statements         = case_statements;
+        var_table->default_statement       = default_statement;
+        var_table->default_statement_index = default_statement_index;
+
+        array_append(statements, switch_statement);
+    }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_DEFAULT) || peek_token(*tokens, *token_index, TOKEN_TYPE_CASE)) {
+        //static bool default_token = false;
+        //ASSERT(default_token == false);
+
+        ASSERT(var_table->switch_var);
+        ASSERT(var_table->break_label);
+
+        bool default_token = peek_token(*tokens, *token_index, TOKEN_TYPE_DEFAULT);
+        bool case_token = peek_token(*tokens, *token_index, TOKEN_TYPE_CASE);
+        Parse_Node node = {0};
+        if (case_token) {
+            node.type = PARSE_TYPE_STATEMENT_CASE;
+            //node.statement.case_statement.switch_var = var_table->switch_var;
+        } else if (default_token){
+            ASSERT(!(*var_table->default_statement));
+            node.type = PARSE_TYPE_STATEMENT_DEFAULT;
+            var_table->default_statement_index = get_array_count((*var_table->case_statements));
+        }
+        (*token_index) +=1;
+
+        if (case_token) {
+            parse_expression(&node.statement.case_statement.number, var_table,  tokens, token_index,0,scope_id, next_scope_id);
+            ASSERT(node.statement.case_statement.number->type == PARSE_TYPE_EXP_FACTOR_INT);
+        }
+        ASSERT(peek_token(*tokens, *token_index, TOKEN_TYPE_COLON));
+        (*token_index) +=1;
+
+        Parse_Node body_label = {0};
+        body_label.type = PARSE_TYPE_STATEMENT_LABEL;
+        body_label.statement.label_statement.identifier = create_label(body_name, loop_id);
+        ++loop_id;
+
+        if (case_token) {
+            array_append(&node.statement.case_statement.body_label_jump, body_label);
+        } else {
+            array_append(&node.statement.default_statement.body_label_jump, body_label);
+        }
+
+
+        bool new_case_token    = peek_token(*tokens, *token_index, TOKEN_TYPE_CASE);
+        bool new_default_token = peek_token(*tokens, *token_index, TOKEN_TYPE_DEFAULT);
+        bool new_close_bracket = peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET);
+        bool should_continue   =  !new_case_token && !new_default_token && !new_close_bracket;
+        if (case_token) {
+            while (should_continue) {
+                parse_statement(&node.statement.case_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+                new_case_token    = peek_token(*tokens, *token_index, TOKEN_TYPE_CASE);
+                new_default_token = peek_token(*tokens, *token_index, TOKEN_TYPE_DEFAULT);
+                new_close_bracket = peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET);
+                should_continue   =  !new_case_token && !new_default_token && !new_close_bracket;
+
+            }
+            array_append(var_table->case_statements, node);
+        }else {
+            while (should_continue){
+                parse_statement(&node.statement.default_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
+                new_case_token    = peek_token(*tokens, *token_index, TOKEN_TYPE_CASE);
+                new_default_token = peek_token(*tokens, *token_index, TOKEN_TYPE_DEFAULT);
+                new_close_bracket = peek_token(*tokens, *token_index, TOKEN_TYPE_CLOSE_BRACKET);
+                should_continue   =  !new_case_token && !new_default_token && !new_close_bracket;
+            }
+            array_append(var_table->default_statement, node);
+        }
+
+
+
 
     }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_WHILE) || 
             peek_token(*tokens, *token_index, TOKEN_TYPE_FOR)   ||
@@ -891,10 +1063,10 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         Parse_Node *label_break    = var_table->break_label;
         Parse_Node new_label_continue = {0};
         new_label_continue.type = PARSE_TYPE_STATEMENT_LABEL;
-        new_label_continue.statement.label_statement.identifier = create_loop_label(loop_start_name, loop_id);
+        new_label_continue.statement.label_statement.identifier = create_label(loop_start_name, loop_id);
         Parse_Node new_label_break    = {0};
         new_label_break.type = PARSE_TYPE_STATEMENT_LABEL;
-        new_label_break.statement.label_statement.identifier = create_loop_label(loop_end_name, loop_id);
+        new_label_break.statement.label_statement.identifier = create_label(loop_end_name, loop_id);
         ++loop_id;
 
         var_table->continue_label = &new_label_continue;
@@ -967,8 +1139,8 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
             } else {
                 parse_statement(&loop_node.statement.for_statement.body_statement, var_table,  tokens, token_index,scope_id, next_scope_id, stack_count);
             }
-            
-            
+
+
 
 
         } else {
@@ -1134,10 +1306,10 @@ void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Tok
         }else {
             parse_statement(block_item_root, var_table, tokens, token_index,scope_id, next_scope_id,stack_count);
         }
-    //    int total_tokens = get_array_count(tokens);
-    //    if (total_tokens <= *token_index) {
-    //        ASSERT(0);
-    //    }
+        //    int total_tokens = get_array_count(tokens);
+        //    if (total_tokens <= *token_index) {
+        //        ASSERT(0);
+        //    }
 
     }
     ++(*token_index);

@@ -618,6 +618,127 @@ void process_tac_statement(Tac_Node **instruction_root, Parse_Node *parse_statem
 
 
 
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_SWITCH){ 
+        int case_statement_count = get_array_count(parse_statement->statement.switch_statement.case_statements);
+        for (int i = 0;  i < case_statement_count; ++i) {
+            Parse_Node *case_statement = &parse_statement->statement.switch_statement.case_statements[i];
+            Tac_Node_Operand src1 = create_tac_instructions( instruction_root, parse_statement->statement.switch_statement.switch_var);
+            Tac_Node_Operand src2 = create_tac_instructions( instruction_root, case_statement->statement.case_statement.number);
+
+            Tac_Node equal_to = {0};
+            equal_to.type = TAC_NODE_INSTRUCTION_BINARY_EQUAL_TO;
+            Tac_Node_Operand case_match = ZERO_STRUCT;
+            case_match.type =TAC_NODE_OPERAND_VAR; 
+            case_match.int_value = var_name_index;
+            case_match.identifier = str_create_from_cstr( var_name);
+            str_append_int( &case_match.identifier, var_name_index);
+            var_name_index += 1;
+            equal_to.instruction.binary.src1 = src1;
+            equal_to.instruction.binary.src2 = src2;
+            equal_to.instruction.binary.dest = case_match;
+            array_append(instruction_root, equal_to);
+
+            Tac_Node jinz ={0};
+            jinz.type = TAC_NODE_INSTRUCTION_JINZ;
+
+            Tac_Node_Operand body_label = ZERO_STRUCT;
+            body_label.type = TAC_NODE_INSTRUCTION_LABEL;
+            //body_label_jmp.int_value = label_name_index;
+            body_label.identifier = case_statement->statement.case_statement.body_label_jump->statement.label_statement.identifier;
+
+            jinz.instruction.jmp.condition = case_match;
+            jinz.instruction.jmp.label = body_label;
+
+            array_append(instruction_root, jinz);
+
+
+        }
+
+        int default_statement_count = get_array_count(parse_statement->statement.switch_statement.default_statement);
+        if (default_statement_count == 1) {
+            Tac_Node jmp= {0};
+            jmp.type = TAC_NODE_INSTRUCTION_JMP;
+
+            Tac_Node_Operand jmp_operand = {0};
+            jmp_operand.type = TAC_NODE_INSTRUCTION_LABEL;
+            jmp_operand.identifier = parse_statement->statement.switch_statement.default_statement->statement.default_statement.body_label_jump->statement.label_statement.identifier;
+
+            jmp.instruction.jmp.label = jmp_operand;
+            array_append(instruction_root, jmp);
+        }else if (default_statement_count == 0) {
+            Tac_Node jmp= {0};
+            jmp.type = TAC_NODE_INSTRUCTION_JMP;
+
+            Tac_Node_Operand break_operand = {0};
+            break_operand.type = TAC_NODE_INSTRUCTION_LABEL;
+            break_operand.identifier = parse_statement->statement.switch_statement.break_label_jump->statement.label_statement.identifier;
+
+            jmp.instruction.jmp.label = break_operand;
+            array_append(instruction_root, jmp);
+        }else {
+            ASSERT(0);
+        }
+
+
+        for (int i = 0;  i < case_statement_count; ++i) {
+            if (default_statement_count) {
+                if (parse_statement->statement.switch_statement.default_statement_index == i) {
+                    process_tac_statement(instruction_root,parse_statement->statement.switch_statement.default_statement);
+                }
+            }
+            Parse_Node *case_statement = &parse_statement->statement.switch_statement.case_statements[i];
+
+            process_tac_statement(instruction_root,case_statement);
+        }
+
+        if (default_statement_count) {
+            if (case_statement_count <= default_statement_count) {
+                process_tac_statement(instruction_root,parse_statement->statement.switch_statement.default_statement);
+            }
+        }
+        
+
+
+        Tac_Node break_label = {0};
+        break_label.type = TAC_NODE_INSTRUCTION_LABEL;
+        Tac_Node_Operand break_operand = {0};
+        break_operand.type = TAC_NODE_INSTRUCTION_LABEL;
+        break_operand.identifier = parse_statement->statement.switch_statement.break_label_jump->statement.label_statement.identifier;
+        break_label.instruction.label.operand = break_operand;
+        array_append(instruction_root, break_label);
+
+//        ASSERT(0);
+
+
+        //int block_item_count = get_array_count(parse_statement->statement.switch_statement.body_statement);
+
+        //for  (int block_item_i = 0; block_item_i < block_item_count; ++block_item_i) {
+        //    Parse_Node *block_statement = &parse_statement->statement.switch_statement.body_statement[block_item_i];
+        //    process_tac_statement(instruction_root, block_statement);
+        //}
+    }else if (parse_statement->type == PARSE_TYPE_STATEMENT_DEFAULT || parse_statement->type == PARSE_TYPE_STATEMENT_CASE){ 
+        bool default_statement =  parse_statement->type == PARSE_TYPE_STATEMENT_DEFAULT ;
+        bool case_statement= parse_statement->type == PARSE_TYPE_STATEMENT_CASE;
+        Tac_Node_Operand body_operand = {0};
+        body_operand.type = TAC_NODE_INSTRUCTION_LABEL;
+        if (default_statement)
+            body_operand.identifier = parse_statement->statement.default_statement.body_label_jump->statement.label_statement.identifier;
+        else
+            body_operand.identifier = parse_statement->statement.case_statement.body_label_jump->statement.label_statement.identifier;
+
+        Tac_Node body_label = {0};
+        body_label.type = TAC_NODE_INSTRUCTION_LABEL;
+        body_label.instruction.label.operand = body_operand;
+        array_append(instruction_root, body_label);
+        if (default_statement)
+            process_tac_statement(instruction_root, parse_statement->statement.default_statement.body_statement);
+        else {
+            int case_statement_body_count = get_array_count(parse_statement->statement.case_statement.body_statement);
+            for (int i = 0; i < case_statement_body_count; ++i) {
+                process_tac_statement(instruction_root, &parse_statement->statement.case_statement.body_statement[i]);
+            }
+        }
+
     }else if (parse_statement->type == PARSE_TYPE_STATEMENT_FOR){ 
 
 
