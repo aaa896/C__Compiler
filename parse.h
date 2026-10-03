@@ -121,7 +121,6 @@ struct Parse_Node  {
     union {
         struct {
             Parse_Node *functions;
-            Var_Table global_table;
         }program;
 
 
@@ -151,6 +150,7 @@ struct Parse_Node  {
                     Parse_Node *then;
                     Parse_Node *else_clause;
                 }if_statement;
+                //TODO make goto statement have Parse_Node * to label_statement
                 struct {
                     String label_identifier;
                 }goto_statement;
@@ -256,6 +256,7 @@ struct Parse_Node  {
 };
 
 Parse_Node *parse_tokens(Token **tokens) ;
+void free_parse_nodes(Parse_Node *nodes) ;
 void print_parse_nodes(Parse_Node *nodes);
 #endif // _PARSE_H_
 

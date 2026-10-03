@@ -1,8 +1,8 @@
 
 int main(void) {
-//
-    int y = 1;
-    int x = 2;
+
+  int x = 1 + 1;
+  int y = 1;
 
     while (x < 3) {
         switch (x) {
@@ -28,5 +28,6 @@ int main(void) {
 
         }
     }
+
     return x;
 }

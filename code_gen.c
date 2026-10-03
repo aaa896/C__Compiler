@@ -16,6 +16,16 @@ static void print_char_n(char c, int n)
     }
 }
 
+
+void free_assembly_nodes(Assembly_Node *nodes) {
+    int function_count = get_array_count(nodes->program.functions);
+    for (int function_i =  0; function_i < function_count; ++function_i) {
+        array_free(&(nodes->program.functions[function_i].function.instructions));
+    }
+    array_free(&nodes->program.functions);
+    array_free(&nodes);
+}
+
 void print_operand(Assembly_Node_Operand *operand) 
 {
     if (operand->type == ASSEMBLY_NODE_TYPE_OPERAND_INT) {

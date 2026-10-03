@@ -108,6 +108,7 @@ struct Tac_Node  {
 };
 
 Tac_Node * create_tac_nodes(Parse_Node *parse_program);
+void free_tac_nodes(Tac_Node *nodes) ;
 void print_tac_nodes(Tac_Node *node);
 
 #endif // _IR_GEN_H_

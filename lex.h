@@ -84,6 +84,7 @@ struct Token {
 };
 
 Token * lex_program(String path);
+void free_tokens(Token *tokens) ;
 void print_tokens(Token *tokens) ;
 
 

@@ -28,6 +28,268 @@ bool peek_declaration(Token *tokens, int token_index) ;
 int peek_token(Token *tokens, int token_index, Token_Type type) ;
 void parse_expression(Parse_Node **expression_root,  Var_Table *table, Token **tokens, int *token_index, int min_precedence, int scope_id, int *next_scope_id) ;
 void parse_block_items( Parse_Node **block_item_root,  Var_Table *var_table, Token **tokens, int *token_index, int scope_id, int *next_scope_id,int *stack_count) ;
+void free_var_table(Var_Table *table) ;
+
+void free_parse_nodes(Parse_Node *nodes) {
+    if (!nodes)
+        return;
+    int nodes_count = get_array_count(nodes);
+    for (int i =0; i < nodes_count; ++i) {
+        Parse_Node *node = &nodes[i];
+        if (node->type == PARSE_TYPE_ERROR) {
+            FAIL_MSG("parse error type\n");
+        }else if (node->type == PARSE_TYPE_PROGRAM) {
+            int function_count = get_array_count(node->program.functions);
+            for (int i = 0; i < function_count; ++i) {
+                free_parse_nodes(&node->program.functions[i]);
+            }
+            array_free(&nodes->program.functions);
+            array_free(&nodes);
+        }else if (node->type == PARSE_TYPE_FUNCTION) {
+            if (node->function.block_items) {
+                int block_item_count = get_array_count(node->function.block_items);
+                for (int i = 0; i  < block_item_count; ++i) {
+                    free_parse_nodes(&node->function.block_items[i]);
+                }
+                array_free(&node->function.block_items);
+                free_var_table(&node->function.var_table);
+            }
+        }else if (node->type == PARSE_TYPE_STATEMENT_COMPOUND) {
+            int block_item_count = get_array_count(node->statement.compound.block_items);
+            for (int i = 0; i  < block_item_count; ++i) {
+                free_parse_nodes(&node->statement.compound.block_items[i]);
+            }
+            array_free(&node->statement.compound.block_items);
+        }else if (node->type == PARSE_TYPE_STATEMENT_RETURN)      {
+            free_parse_nodes(node->statement.return_statement.expression);
+            array_free(&node->statement.return_statement.expression);
+        }else if (node->type == PARSE_TYPE_STATEMENT_NULL)      {
+        }else if (node->type == PARSE_TYPE_STATEMENT_EXPRESSION)      {
+            free_parse_nodes(node->statement.expression_statement.expression);
+            array_free(&node->statement.expression_statement.expression);
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_INT) {
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_VAR) {
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT) {
+            free_parse_nodes(node->expression.factor.increment_value);
+            array_free(&node->expression.factor.increment_value);
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_POST_INCREMENT) {
+            free_parse_nodes(node->expression.factor.increment_value);
+            array_free(&node->expression.factor.increment_value);
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE) {
+            free_parse_nodes(node->expression.factor.unop_next);
+            array_free(&node->expression.factor.unop_next);
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_EXP) {
+            free_parse_nodes(node->expression.factor.expression);
+            array_free(&node->expression.factor.expression);
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT) {
+            free_parse_nodes(node->expression.factor.unop_next);
+            array_free(&node->expression.factor.unop_next);
+        }else if (node->type == PARSE_TYPE_EXP_FACTOR_UNOP_LOGICAL_NOT) {
+            free_parse_nodes(node->expression.factor.unop_next);
+            array_free(&node->expression.factor.unop_next);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_ADD) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_SUB) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_MULTIPLY) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_DIVIDE) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_MODULO) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_BITWISE_OR) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_BITWISE_AND) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_BITWISE_XOR) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_BITWISE_SHIFT_LEFT) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_BITWISE_SHIFT_RIGHT) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_AND) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_OR) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_LESS_THAN) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_LESS_THAN_EQUAL_TO) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_GREATER_THAN) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_GREATER_THAN_EQUAL_TO) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_NOT_EQUAL_TO) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_LOGICAL_EQUAL_TO) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+
+        }else if (node->type == PARSE_TYPE_STATEMENT_DECLARATION) {
+            free_parse_nodes(node->declaration.l_value);
+            array_free(&node->declaration.l_value);
+            if (node->declaration.r_value) {
+                free_parse_nodes(node->declaration.r_value);
+                array_free(&node->declaration.r_value);
+            }
+        }else if (node->type == PARSE_TYPE_EXP_BINOP_EQUAL) {
+            free_parse_nodes(node->expression.binop.left);
+            array_free(&node->expression.binop.left);
+            free_parse_nodes(node->expression.binop.right);
+            array_free(&node->expression.binop.right);
+        }else if (node->type == PARSE_TYPE_STATEMENT_IF) {
+            free_parse_nodes(node->statement.if_statement.condition);
+            array_free(&node->statement.if_statement.condition);
+            free_parse_nodes(node->statement.if_statement.then);
+
+            if (node->statement.if_statement.else_clause) {
+                free_parse_nodes(node->statement.if_statement.else_clause);
+                array_free(&node->statement.if_statement.else_clause);
+
+            }
+        }else if (node->type == PARSE_TYPE_STATEMENT_DO_WHILE) {
+            free_parse_nodes(node->statement.do_while_statement.continue_label_jump);
+            array_free(&node->statement.do_while_statement.continue_label_jump);
+            free_parse_nodes(node->statement.do_while_statement.break_label_jump);
+            array_free(&node->statement.do_while_statement.break_label_jump);
+            free_parse_nodes(node->statement.do_while_statement.body_statement);
+            array_free(&node->statement.do_while_statement.body_statement);
+            free_parse_nodes(node->statement.do_while_statement.condition_expression);
+            array_free(&node->statement.do_while_statement.condition_expression);
+
+        }else if (node->type == PARSE_TYPE_STATEMENT_FOR) {
+            free_parse_nodes(node->statement.for_statement.init);
+            array_free(&node->statement.for_statement.init);
+            free_parse_nodes(node->statement.for_statement.condition_expression);
+            array_free(&node->statement.for_statement.condition_expression);
+            free_parse_nodes(node->statement.for_statement.body_statement);
+            array_free(&node->statement.for_statement.body_statement);
+            free_parse_nodes(node->statement.for_statement.post_expression);
+            array_free(&node->statement.for_statement.post_expression);
+            free_parse_nodes(node->statement.for_statement.continue_label_jump);
+            array_free(&node->statement.for_statement.continue_label_jump);
+            free_parse_nodes(node->statement.for_statement.break_label_jump);
+            array_free(&node->statement.for_statement.break_label_jump);
+
+        }else if (node->type == PARSE_TYPE_STATEMENT_WHILE) {
+            free_parse_nodes(node->statement.while_statement.continue_label_jump);
+            array_free(&node->statement.while_statement.continue_label_jump);
+            free_parse_nodes(node->statement.while_statement.break_label_jump);
+            array_free(&node->statement.while_statement.break_label_jump);
+            free_parse_nodes(node->statement.while_statement.condition_expression);
+            array_free(&node->statement.while_statement.condition_expression);
+            free_parse_nodes(node->statement.while_statement.body_statement);
+            array_free(&node->statement.while_statement.body_statement);
+        }else if (node->type == PARSE_TYPE_STATEMENT_GOTO) {
+        }else if (node->type == PARSE_TYPE_STATEMENT_LABEL) {
+        }else if (node->type == PARSE_TYPE_EXP_CONDITIONAL) {
+            free_parse_nodes(node->expression.conditional.condition);
+            array_free(&node->expression.conditional.condition);
+            free_parse_nodes(node->expression.conditional.true_expression);
+            array_free(&node->expression.conditional.true_expression);
+            free_parse_nodes(node->expression.conditional.false_expression);
+            array_free(&node->expression.conditional.false_expression);
+        }else if (node->type == PARSE_TYPE_STATEMENT_SWITCH) {
+            free_parse_nodes(node->statement.switch_statement.break_label_jump);
+            array_free(&node->statement.switch_statement.break_label_jump);
+            free_parse_nodes(node->statement.switch_statement.continue_label_jump);
+            array_free(&node->statement.switch_statement.continue_label_jump);
+            free_parse_nodes(node->statement.switch_statement.switch_var);
+            array_free(&node->statement.switch_statement.switch_var);
+            int case_statement_count = get_array_count(node->statement.switch_statement.case_statements);
+            for (int i = 0; i < case_statement_count; ++i) {
+                free_parse_nodes(&node->statement.switch_statement.case_statements[i]);
+            }
+            array_free(&node->statement.switch_statement.case_statements);
+            int default_statement_count = get_array_count(node->statement.switch_statement.default_statement);
+            if (default_statement_count) {
+                free_parse_nodes(node->statement.switch_statement.default_statement);
+                array_free(&node->statement.switch_statement.default_statement);
+            }
+        }else if (node->type == PARSE_TYPE_STATEMENT_CASE) {
+            free_parse_nodes(node->statement.case_statement.number);
+            array_free(&node->statement.case_statement.number);
+            free_parse_nodes(node->statement.case_statement.body_label_jump);
+            array_free(&node->statement.case_statement.body_label_jump);
+            int case_body_count = get_array_count(node->statement.case_statement.body_statement);
+            for (int i = 0; i < case_body_count; ++i) {
+                free_parse_nodes(&node->statement.case_statement.body_statement[i]);
+            }
+            array_free(&node->statement.case_statement.body_statement);
+
+        }else if (node->type == PARSE_TYPE_STATEMENT_DEFAULT) {
+            free_parse_nodes(node->statement.default_statement.body_label_jump);
+            array_free(&node->statement.default_statement.body_label_jump);
+            free_parse_nodes(node->statement.default_statement.body_statement);
+            array_free(&node->statement.default_statement.body_statement);
+        }else {
+            FAIL_MSG("unknown parse  print\n");
+        }
+
+    }
+
+}
 
 void print_char_n(char c, int n) 
 {
@@ -559,6 +821,16 @@ void insert_var_table_item(Var_Table_Item **items, String identifier, int scope_
     array_append(items, item);
 }
 
+void free_var_table(Var_Table *table) {
+    if (table->var_items)
+        array_free(&table->var_items);
+    if (table->label_items)
+        array_free(&table->label_items);
+    if (table->typedef_items)
+        array_free(&table->typedef_items);
+}
+
+
 
 int peek_token(Token *tokens, int token_index, Token_Type type) 
 {
@@ -574,7 +846,7 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token **toke
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_INT;
         factor.expression.factor.int_value = (*tokens)[*token_index].constant;
-        factor.expression.factor.var_name = (*tokens)[*token_index].identifier;
+        factor.expression.factor.var_name = str_clone((*tokens)[*token_index].identifier);
         array_append(factor_root, factor);
         (*token_index)++;
 
@@ -590,14 +862,14 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token **toke
 
         bool post_increment = false;
         {
-            ASSERT(*token_index < get_array_count(tokens) -1);
+            ASSERT(*token_index < get_array_count((*tokens)) -1);
             Token increment = (*tokens)[*token_index + 1];
             post_increment = increment.type == TOKEN_TYPE_INCREMENT;
         }
 
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_VAR;
-        factor.expression.factor.var_name = (*tokens)[*token_index].identifier;
+        factor.expression.factor.var_name = str_clone((*tokens)[*token_index].identifier);
         int var_table_index = get_var_table_index(var_table, factor.expression.factor.var_name, scope_id);
         ASSERT( var_table_index != -1);
         factor.expression.factor.int_value = var_table->var_items[var_table_index].stack_index;
@@ -617,8 +889,8 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token **toke
     }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_INCREMENT)) {
 
 
-        ASSERT(*token_index < get_array_count(tokens) -1);
-        String var_str = (*tokens)[*token_index + 1].identifier;
+        ASSERT(*token_index < get_array_count(*tokens) -1);
+        String var_str = str_clone((*tokens)[*token_index + 1].identifier);
 
         int var_table_index = get_var_table_index(var_table, var_str, scope_id);
         ASSERT (var_table_index != -1) ;
@@ -632,7 +904,7 @@ void parse_factor(Parse_Node **factor_root,   Var_Table *var_table, Token **toke
 
         Parse_Node factor = ZERO_STRUCT;
         factor.type = PARSE_TYPE_EXP_FACTOR_VAR;
-        factor.expression.factor.var_name = (*tokens)[*token_index].identifier;
+        factor.expression.factor.var_name = str_clone((*tokens)[*token_index].identifier);
         factor.expression.factor.int_value = var_stack_index;
         factor.expression.factor.scope_id = var_scope_id;
 
@@ -688,6 +960,7 @@ Parse_Type peek_binop_type(Token **tokens, int token_index)
         Token binop = {0};
         ASSERT(token_index >= 1);
         Token identifier = (*tokens)[token_index -1];
+        identifier.identifier = str_clone(identifier.identifier);
         ASSERT(identifier.type == TOKEN_TYPE_IDENTIFIER);
         array_insert(tokens,token_index + 1, identifier);
         if (peek_token((*tokens), token_index, TOKEN_TYPE_PLUS_EQUAL)) {
@@ -858,6 +1131,7 @@ void parse_expression(Parse_Node **expression_root,  Var_Table *var_table, Token
         }
     }
     array_append(expression_root, *left);
+    array_free(&left);
 }
 
 
@@ -881,7 +1155,7 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
         (*token_index) ++;
         ASSERT((*tokens)[*token_index].type == TOKEN_TYPE_IDENTIFIER);
-        goto_statement.statement.goto_statement.label_identifier = (*tokens)[*token_index].identifier;
+        goto_statement.statement.goto_statement.label_identifier = str_clone((*tokens)[*token_index].identifier);
         (*token_index) ++;
         array_append(statements, goto_statement);
     }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
@@ -894,7 +1168,7 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         ASSERT(var_table->break_label);
         Parse_Node goto_statement = {0};
         goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
-        goto_statement.statement.goto_statement.label_identifier = var_table->break_label->statement.label_statement.identifier;
+        goto_statement.statement.goto_statement.label_identifier = str_clone(var_table->break_label->statement.label_statement.identifier);
         array_append(statements, goto_statement);
         (*token_index) ++;
         if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
@@ -906,7 +1180,7 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         ASSERT(var_table->continue_label);
         Parse_Node goto_statement = {0};
         goto_statement.type = PARSE_TYPE_STATEMENT_GOTO;
-        goto_statement.statement.goto_statement.label_identifier = var_table->continue_label->statement.label_statement.identifier;
+        goto_statement.statement.goto_statement.label_identifier = str_clone(var_table->continue_label->statement.label_statement.identifier);
         array_append(statements, goto_statement);
         (*token_index) ++;
         if (!peek_token(*tokens, *token_index, TOKEN_TYPE_SEMICOLON)) {
@@ -969,7 +1243,7 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         ASSERT(body_statement_count == 0);
         switch_statement.statement.switch_statement.default_statement_index = var_table->default_statement_index;
 
-            //node.statement.default_statement.switch_statement_index = get_array_count(var_table->case_statements);
+        //node.statement.default_statement.switch_statement_index = get_array_count(var_table->case_statements);
 
 
 
@@ -980,6 +1254,7 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
         var_table->default_statement_index = default_statement_index;
 
         array_append(statements, switch_statement);
+        array_free(&body);
     }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_DEFAULT) || peek_token(*tokens, *token_index, TOKEN_TYPE_CASE)) {
         //static bool default_token = false;
         //ASSERT(default_token == false);
@@ -1172,7 +1447,7 @@ void parse_statement(Parse_Node **statements, Var_Table  *var_table, Token **tok
     }else if (peek_token(*tokens, *token_index, TOKEN_TYPE_LABEL)) {
         Parse_Node label_statement = {0};
         label_statement.type = PARSE_TYPE_STATEMENT_LABEL;
-        label_statement.statement.label_statement.identifier = (*tokens)[*token_index].identifier;
+        label_statement.statement.label_statement.identifier = str_clone((*tokens)[*token_index].identifier);
         int table_count = get_array_count(var_table->label_items);
         for (int i = 0; table_count; ++i) {
             Var_Table_Item item = var_table->label_items[i];

@@ -8,12 +8,14 @@
 #include "code_gen.h"
 #include "code_emmission.h"
 
+#include "arena.h"
 #include "string.h"
 #include "tdf.h"
 
 
 int main(int argc, char**argv) 
 {
+    arena_init();
     String input_name;
     if (argc == 1) {
         input_name = str_create_from_cstr("input.c");
@@ -42,5 +44,11 @@ int main(int argc, char**argv)
 
     emmit_code( assembly_nodes, full_output_path);
 
+
+    free_tokens(tokens);
+    free_parse_nodes(parse_nodes);
+    free_tac_nodes(tac_nodes) ;
+    free_assembly_nodes(assembly_nodes);
+    arena_deinit();
     return (0);
 }

@@ -125,5 +125,6 @@ struct Assembly_Node  {
 Assembly_Node * create_code_gen( Tac_Node *tac_node) ;
 void print_assembly_nodes(Assembly_Node *nodes);
 void print_assembly_nodes_pad(Assembly_Node *nodes, int start_padding, int padding_increment);
+void free_assembly_nodes(Assembly_Node *nodes) ;
 #endif // _CODE_GEN_H_
 

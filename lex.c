@@ -6,7 +6,9 @@
 #include "string.h"
 
 
-
+void free_tokens(Token *tokens) {
+    array_free(&tokens);
+}
 
 void print_tokens(Token *tokens) {
     printf("\nTokens Print\n");
