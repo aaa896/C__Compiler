@@ -41,6 +41,8 @@ char*   str_convert_to_cstr(String str) ;
 String  str_create_from_int(int x);
 char*   cstr_create_from_int(int x);
 void    str_free(String *string) ;
+int     cstr_equals_cstr(char*  s1,char *s2);
+int     get_cstr_len(char *s1) ;
 
 
 char *       sv_convert_to_cstr(String_View sv);
@@ -53,6 +55,7 @@ String_View  sv_chop_type(String_View *sv, int (*istype)(int c)) ;
 String_View  sv_chop_leading_substr(String_View *sv, char *substr) ;
 String_View  sv_chop_delim(String_View *sv, char c) ;
 String_View  sv_from_str(String str);
+String_View  sv_from_cstr(char* str);
 void str_print(String s) ;
 void sv_print(String_View sv) ;
 

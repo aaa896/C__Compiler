@@ -26,6 +26,8 @@ void print_tokens(Token *tokens) {
             printf("Number ");
             str_print(tokens[i].identifier);
             printf(" \n");
+        } else if (tokens[i].type == TOKEN_TYPE_COMMA) {
+            printf("Comma ,\n");
         } else if (tokens[i].type == TOKEN_TYPE_OPEN_PAREN) {
             printf("Open Paren (\n");
         } else if (tokens[i].type == TOKEN_TYPE_CLOSE_PAREN) {
@@ -411,6 +413,11 @@ Token * lex_program( String path)
         }else if (program.data[i] == '{') {
             Token token = ZERO_STRUCT;
             token.type = TOKEN_TYPE_OPEN_BRACKET;
+            array_append(&tokens, token);
+        }else if (program.data[i] == ',') {
+
+            Token token = ZERO_STRUCT;
+            token.type = TOKEN_TYPE_COMMA;
             array_append(&tokens, token);
         }else if (program.data[i] == '}') {
 

@@ -6,9 +6,36 @@
 #include "string.h"
 #include <stdbool.h>
 
+
+
 #ifdef STRING_USE_ARENA
 #include "arena.h"
 
+
+int get_cstr_len(char *s1) {
+    if (!s1)
+        return 0;
+
+    int count = 0;
+    while (s1[count])
+        ++count;
+
+    return count;
+}
+
+int cstr_equals_cstr(char*  s1,char *s2)
+{
+    int s1_size = get_cstr_len(s1);
+    int s2_size = get_cstr_len(s2);
+
+    if (s1_size != s2_size)
+        return 0;
+    for (int i = 0; i < s1_size; ++i) {
+        if (s1[i] != s2[i])
+            return 0;
+    }
+    return 1;
+}
 void str_free(String *string) {
     ASSERT(0);
     //if (!string)
@@ -19,6 +46,15 @@ void str_free(String *string) {
     //string->capacity = 0;
     //free(string->data);
     //string->data =0;
+}
+
+
+String_View  sv_from_cstr(char* cstr) {
+    String_View rv = {
+        .data = cstr,
+        .count = get_cstr_len(cstr),
+    };
+    return rv;
 }
 
 void sv_print(String_View sv) 
@@ -47,7 +83,7 @@ String str_create_from_cstr( char *cstr)
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
     String str = {0};
-    str.size =strlen(cstr) ;
+    str.size =get_cstr_len(cstr) ;
     str.capacity  = (str.size > STRING_DEFAULT_CAPACITY) ? (str.size * 2) : (STRING_DEFAULT_CAPACITY);
     str.data = arena_push_array(scratch.arena, char, str.capacity);
     memcpy(str.data, cstr, str.size);
@@ -103,6 +139,7 @@ String str_read_file_from_str( String str)
     return rv;
 }
 
+
 int str_equals_str(String  s1, String  s2)
 {
     if (s1.size != s2.size)
@@ -116,7 +153,7 @@ int str_equals_str(String  s1, String  s2)
 
 int str_equals_cstr(String  str, char *cstr)
 {
-    int cstr_len = strlen(cstr);
+    int cstr_len = get_cstr_len(cstr);
     if (str.size != cstr_len)
         return 0;
     for (int i = 0; i < cstr_len; ++i) {
@@ -144,8 +181,8 @@ String str_join_cstr_cstr ( char* cstr_1, char *cstr_2)
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
     String rv = {0};
-    int clen_1 = strlen(cstr_1);
-    int clen_2 = strlen(cstr_2);
+    int clen_1 = get_cstr_len(cstr_1);
+    int clen_2 = get_cstr_len(cstr_2);
     rv.size = clen_1 + clen_2;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = arena_push_array(scratch.arena, char, rv.capacity);
@@ -159,7 +196,7 @@ String str_join_str_cstr ( String s1, char *cstr)
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
     String rv = {0};
-    int cstr_count = strlen(cstr);
+    int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = arena_push_array(scratch.arena, char, rv.capacity);
@@ -173,7 +210,7 @@ String str_join_cstr_str ( char *cstr, String s1 )
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
     String rv = {0};
-    int cstr_count = strlen(cstr);
+    int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = arena_push_array(scratch.arena, char, rv.capacity);
@@ -186,7 +223,7 @@ String str_join_cstr_sv( char *cstr, String s1)
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
     String rv = {0};
-    int cstr_count = strlen(cstr);
+    int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = arena_push_array(scratch.arena, char,rv.capacity);
@@ -224,7 +261,7 @@ void str_append_str( String *s1, String s2)
 
 void str_append_cstr( String *s1, char *cstr)
 {
-    int cstr_size = strlen(cstr);
+    int cstr_size = get_cstr_len(cstr);
     int total_size = s1->size + cstr_size;
     if (total_size > s1->capacity) {
         size_t cap = total_size * 2;
@@ -288,7 +325,7 @@ char* cstr_create_from_int( int x)
     int buff_size = 32;
     char buff[32] ;
     snprintf(buff, buff_size, "%d", x);
-    int slen = strlen(buff);
+    int slen = get_cstr_len(buff);
     char *rv = arena_push_array(scratch.arena, char, slen);
     return rv;
 }
@@ -311,7 +348,7 @@ void sv_chop_right(String_View *sv, int n)
 }
 
 String_View  sv_chop_leading_substr(String_View *sv, char *substr)  {
-    int clen = strlen(substr);
+    int clen = get_cstr_len(substr);
     int rv_count = 0;
     for (; rv_count < sv->count; ++rv_count) {
         if (rv_count  == clen)
@@ -418,7 +455,7 @@ String_View  sv_from_str(String str)
 
 b32 sv_equals_cstr(String_View sv , char *s) 
 {
-    int clen = strlen(s);
+    int clen = get_cstr_len(s);
     if (clen != sv.count)
         return false;
     for (int i = 0; i < clen ; ++i) {
@@ -446,6 +483,39 @@ int sv_to_int(String_View sv) {
 
 
 #else
+
+
+int get_cstr_len(char *s1) {
+    if (!s1)
+        return 0;
+
+    int count = 0;
+    while (s1[count])
+        ++count;
+
+    return count;
+}
+
+int cstr_equals_cstr(char*  s1,char *s2)
+{
+    int s1_size = get_cstr_len(s1);
+    int s2_size = get_cstr_len(s2);
+
+    if (s1_size != s2_size)
+        return 0;
+    for (int i = 0; i < s1_size; ++i) {
+        if (s1[i] != s2[i])
+            return 0;
+    }
+    return 1;
+}
+String_View  sv_from_cstr(char* cstr) {
+    String_View rv = {
+        .data = cstr,
+        .count = get_cstr_len(cstr),
+    };
+    return rv;
+}
 
 void str_free(String *string) {
     if (!string)
@@ -482,7 +552,7 @@ char *str_convert_to_cstr( String str)
 String str_create_from_cstr( char *cstr) 
 {
     String str = {0};
-    str.size =strlen(cstr) ;
+    str.size =get_cstr_len(cstr) ;
     str.capacity  = (str.size > STRING_DEFAULT_CAPACITY) ? (str.size * 2) : (STRING_DEFAULT_CAPACITY);
     str.data = malloc(str.capacity);
     memcpy(str.data, cstr, str.size);
@@ -508,6 +578,7 @@ String str_clone( String str)
     memcpy(rv.data, str.data, rv.size);
     return rv;
 }
+
 
 
 String str_read_file_from_cstr( char *path)
@@ -548,7 +619,7 @@ int str_equals_str(String  s1, String  s2)
 
 int str_equals_cstr(String  str, char *cstr)
 {
-    int cstr_len = strlen(cstr);
+    int cstr_len = get_cstr_len(cstr);
     if (str.size != cstr_len)
         return 0;
     for (int i = 0; i < cstr_len; ++i) {
@@ -574,8 +645,8 @@ String str_join_str_str( String s1, String s2)
 String str_join_cstr_cstr ( char* cstr_1, char *cstr_2)
 {
     String rv = {0};
-    int clen_1 = strlen(cstr_1);
-    int clen_2 = strlen(cstr_2);
+    int clen_1 = get_cstr_len(cstr_1);
+    int clen_2 = get_cstr_len(cstr_2);
     rv.size = clen_1 + clen_2;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = malloc( rv.capacity);
@@ -588,7 +659,7 @@ String str_join_cstr_cstr ( char* cstr_1, char *cstr_2)
 String str_join_str_cstr ( String s1, char *cstr)
 {
     String rv = {0};
-    int cstr_count = strlen(cstr);
+    int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = malloc( rv.capacity);
@@ -601,7 +672,7 @@ String str_join_str_cstr ( String s1, char *cstr)
 String str_join_cstr_str ( char *cstr, String s1 )
 {
     String rv = {0};
-    int cstr_count = strlen(cstr);
+    int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = malloc( rv.capacity);
@@ -613,7 +684,7 @@ String str_join_cstr_str ( char *cstr, String s1 )
 String str_join_cstr_sv( char *cstr, String s1)
 {
     String rv = {0};
-    int cstr_count = strlen(cstr);
+    int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
     rv.data = malloc(rv.capacity);
@@ -651,7 +722,7 @@ void str_append_str( String *s1, String s2)
 
 void str_append_cstr( String *s1, char *cstr)
 {
-    int cstr_size = strlen(cstr);
+    int cstr_size = get_cstr_len(cstr);
     int total_size = s1->size + cstr_size;
     if (total_size > s1->capacity) {
         size_t cap = total_size * 2;
@@ -714,7 +785,7 @@ char* cstr_create_from_int( int x)
     int buff_size = 32;
     char buff[32] ;
     snprintf(buff, buff_size, "%d", x);
-    int slen = strlen(buff);
+    int slen = get_cstr_len(buff);
     char *rv = malloc( slen);
     return rv;
 }
@@ -737,7 +808,7 @@ void sv_chop_right(String_View *sv, int n)
 }
 
 String_View  sv_chop_leading_substr(String_View *sv, char *substr)  {
-    int clen = strlen(substr);
+    int clen = get_cstr_len(substr);
     int rv_count = 0;
     for (; rv_count < sv->count; ++rv_count) {
         if (rv_count  == clen)
@@ -844,7 +915,7 @@ String_View  sv_from_str(String str)
 
 b32 sv_equals_cstr(String_View sv , char *s) 
 {
-    int clen = strlen(s);
+    int clen = get_cstr_len(s);
     if (clen != sv.count)
         return false;
     for (int i = 0; i < clen ; ++i) {

@@ -15,6 +15,9 @@ enum  Assembly_Node_Type {
     ASSEMBLY_NODE_TYPE_INSTRUCTION_UNARY_NOT,
     ASSEMBLY_NODE_TYPE_INSTRUCTION_RET,
     ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK,
+    ASSEMBLY_NODE_TYPE_INSTRUCTION_DEALLOCATE_STACK,
+    ASSEMBLY_NODE_TYPE_INSTRUCTION_PUSH_STACK,
+    ASSEMBLY_NODE_TYPE_INSTRUCTION_CALL,
 
     ASSEMBLY_NODE_TYPE_INSTRUCTION_BINARY_ADD,
     ASSEMBLY_NODE_TYPE_INSTRUCTION_BINARY_SUB,
@@ -41,18 +44,29 @@ enum  Assembly_Node_Type {
     ASSEMBLY_NODE_TYPE_INSTRUCTION_SETL,
     ASSEMBLY_NODE_TYPE_INSTRUCTION_SETLE,
 
-    ASSEMBLY_NODE_TYPE_OPERAND_INT,
+    ASSEMBLY_REGISTER_OPERAND_BEGIN,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_AX,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_CX,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_DI,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_SI,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_R8 ,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_R9 ,
+
+
     ASSEMBLY_NODE_TYPE_OPERAND_REG_EAX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_AL,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_EDX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_DL,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_ECX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_CL,
-    ASSEMBLY_NODE_TYPE_OPERAND_STACK,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R10 ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R10B ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R11 ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R11B ,
+    ASSEMBLY_REGISTER_OPERAND_END,
+
+    ASSEMBLY_NODE_TYPE_OPERAND_INT,
+    ASSEMBLY_NODE_TYPE_OPERAND_STACK,
 };
 
 typedef struct Assembly_Node_Operand  Assembly_Node_Operand;
@@ -76,6 +90,9 @@ struct Assembly_Node  {
             String name;
             Assembly_Node *instructions;
         }function;
+        struct {
+            String name;
+        }function_call;
 
         struct {
             Assembly_Node_Operand src ;
@@ -96,8 +113,18 @@ struct Assembly_Node  {
         }unary;
 
         struct {
+            Assembly_Node_Operand operand;
+        }alloc_stack;
+        struct {
+            Assembly_Node_Operand operand;
+        }dealloc_stack;
+
+        struct {
             Assembly_Node_Operand operand ;
-        }stack;
+        }push;
+        struct {
+            Assembly_Node_Operand operand;
+        }push_stack;
 
 
         struct {

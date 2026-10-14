@@ -3,6 +3,7 @@
 
 #include "string.h"
 #include "lex.h"
+#include "register.h"
 
 #define PRECEDENCE_EQUAL                    1
 #define PRECEDENCE_CONDITIONAL              3
@@ -30,22 +31,46 @@ typedef struct Parse_Node  Parse_Node;
 
 
 typedef struct {
-    String string;
-    int stack_index;
-    int scope_id;
-    bool accessible;
-    String type;
-}Var_Table_Item;
+    char * key;
+    int size;
+
+} Type;
+
+//typedef struct {
+//    Type type;
+//    Register register_type;
+//    int stack_offset;
+//}Param_Table_Item;
 
 typedef struct {
-    String type;
-    String def;
-}Typedef_Item;
+    char* key;
+    int  stack_index;
+    //int  scope_id;
+    Type type;
+} Var_Table_Item;
+
+
+typedef struct {
+    char* key;
+} Label_Table_Item;
+
+
+
+typedef struct {
+    char* key;
+    char* def;
+
+} Typedef_Table_Item;
+
 
 typedef struct  {
-    Var_Table_Item *var_items;
-    Var_Table_Item *label_items;
-    Typedef_Item *typedef_items;
+    //Param_Table_Item  *param_items;
+    Var_Table_Item       *var_items;
+    Label_Table_Item     *label_items;
+    Typedef_Table_Item   *typedef_items;
+    Parse_Node *function_declarations;
+
+    Type *valid_types;
 
     Parse_Node *continue_label;
     Parse_Node *break_label;
@@ -54,17 +79,28 @@ typedef struct  {
     Parse_Node **case_statements;
     Parse_Node **default_statement;
     int default_statement_index;
-}Var_Table;
+}Parse_Table;
+
+
+typedef struct {
+    Parse_Table global_table;
+    Parse_Table *scope_tables;
+    Token **tokens;
+    int token_index;
+    //int scope_id;
+    //int next_scope_id;
+    int stack_count;
+}Parse_Data;
 
 typedef enum Parse_Type  Parse_Type;
 enum Parse_Type  {
     PARSE_TYPE_ERROR,
     PARSE_TYPE_PROGRAM,
-    PARSE_TYPE_FUNCTION,
 
     PARSE_TYPE_STATEMENT_GOTO,
     PARSE_TYPE_STATEMENT_LABEL,
-    PARSE_TYPE_STATEMENT_DECLARATION,
+    PARSE_TYPE_STATEMENT_DECLARATION_VAR,
+    PARSE_TYPE_STATEMENT_DECLARATION_FUNCTION,
     PARSE_TYPE_STATEMENT_RETURN,
     PARSE_TYPE_STATEMENT_IF,
     PARSE_TYPE_STATEMENT_EXPRESSION,
@@ -106,6 +142,7 @@ enum Parse_Type  {
     PARSE_TYPE_EXP_FACTOR_EXP,
     PARSE_TYPE_EXP_FACTOR_INT,
     PARSE_TYPE_EXP_FACTOR_VAR,
+    PARSE_TYPE_EXP_FACTOR_FUNCTION_CALL,
 
     PARSE_TYPE_EXP_FACTOR_POST_INCREMENT,
     PARSE_TYPE_EXP_FACTOR_PRE_INCREMENT,
@@ -113,6 +150,8 @@ enum Parse_Type  {
     PARSE_TYPE_EXP_FACTOR_UNOP_NEGATE,
     PARSE_TYPE_EXP_FACTOR_UNOP_BITWISE_NOT,
     PARSE_TYPE_EXP_FACTOR_UNOP_LOGICAL_NOT,
+
+    PARSE_TYPE_PARAMETER,
 };
 
 
@@ -120,18 +159,9 @@ struct Parse_Node  {
     Parse_Type type;
     union {
         struct {
-            Parse_Node *functions;
+            Parse_Data data;
+            Parse_Node *function_declarations;
         }program;
-
-
-        struct {
-            String name;
-            String return_value_name;
-            //statements or declarations
-            Parse_Node *block_items;
-            Var_Table var_table;
-            int stack_count;
-        }function;
 
         struct {
             Parse_Node *items;
@@ -155,7 +185,7 @@ struct Parse_Node  {
                     String label_identifier;
                 }goto_statement;
                 struct {
-                    String identifier;
+                    Label_Table_Item item;
                 }label_statement;
                 struct {
                     Parse_Node *block_items;
@@ -218,22 +248,69 @@ struct Parse_Node  {
         }statement;
 
         struct {
-            Parse_Node *l_value;
-            Parse_Node *r_value;
+            union {
+                struct {
+                    Parse_Node *l_value;
+                    Parse_Node *r_value;
+                }var;
+                struct {
+
+                    String name;
+                    String return_value_name;
+                    Parse_Node *params;
+                    //statements or declarations
+                    Parse_Node *block_items;
+                    //Parse_Table var_table;
+                    int stack_count;
+                }function;
+            };
         }declaration;
+
+        struct {
+            Type type;
+            String name;
+            Register register_type;
+            int stack_offset;
+        }parameter;
 
 
 
         struct {
             struct {
                 union {
-                    Parse_Node *increment_value;
-                    Parse_Node *unop_next;
-                    Parse_Node *expression;
+                    struct {
+                        Parse_Node *expression;
+                    }expression;
+
+                    struct {
+                        Var_Table_Item item;
+                    }var;
+
+                    struct {
+                        int value;
+                        String string;
+                    }int_value;
+
+                    struct {
+                        Parse_Node *next;
+                    }unop;
+
+                    struct {
+                        Parse_Node *value;
+                    }increment;
+
+                    //int int_value;
+                    //int scope_id;
+                    //String var_name;
+
+                    struct {
+                        Parse_Node *params;
+                        Type return_type;
+                        Type type;
+                        String name;
+                    }function_call;
                 };
-                int int_value;
-                int scope_id;
-                String var_name;
+
             }factor;
 
             struct {
@@ -250,6 +327,7 @@ struct Parse_Node  {
                 Parse_Node *left;
                 Parse_Node *right;
             }binop;
+
         }expression;
 
     };

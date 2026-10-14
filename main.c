@@ -16,20 +16,52 @@
 int main(int argc, char**argv) 
 {
     arena_init();
-    String input_name;
+    String input_name = {0};
+    String output_name = {0};
+    bool output_object_file = false;
     if (argc == 1) {
         input_name = str_create_from_cstr("input.c");
     } else {
-        input_name = str_create_from_cstr(argv[1]);
+        int current_argc = 1;
+        bool found_input_name = false;
+        for (int i = 1; i <argc; ++i) {
+            String_View arg = sv_from_cstr(argv[i]);
+            if (sv_equals_cstr(arg, "-c")) {
+                output_object_file =true;
+                i += 1;
+                ASSERT(i < argc);
+                input_name =str_create_from_cstr(argv[i]); 
+                found_input_name = true;
+
+                i += 1;
+                ASSERT(i < argc);
+                output_name =str_create_from_cstr(argv[i]); 
+                continue;
+
+            }
+            if (found_input_name)
+                ASSERT(0);
+            found_input_name = true;
+            input_name = str_create_from_cstr(argv[i]);
+        }
+    }
+    if (output_object_file) {
+        printf("Object File Create\n");
+        String command = str_create_from_cstr("gcc -c ");
+        str_append_str(&command, input_name);
+        str_append_cstr(&command, " ");
+        str_append_str(&command, output_name);
+        char *cstr_command = str_convert_to_cstr(command);
+        system(cstr_command);
+        arena_deinit();
+        return 0;
     }
 
     String input_dir = ZERO_STRUCT;
     String_View input_name_sv = sv_from_str(input_name);
     String_View input_filename_head  = sv_chop_delim(&input_name_sv, '.');
-    String output_name = ZERO_STRUCT;
     str_append_sv( &output_name, input_filename_head);
     str_append_cstr( &output_name, ".s");
-    String full_output_path  = str_join_str_str( input_dir, output_name);
 
     Token *tokens = lex_program( input_name);
     print_tokens(tokens);
@@ -42,7 +74,7 @@ int main(int argc, char**argv)
     print_assembly_nodes(assembly_nodes);
 
 
-    emmit_code( assembly_nodes, full_output_path);
+    emmit_code( assembly_nodes, output_name);
 
 
     free_tokens(tokens);

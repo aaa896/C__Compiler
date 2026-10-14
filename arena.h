@@ -62,7 +62,6 @@ void   arena_pop(Arena *arena, u64 bytes);
 void * arena_push(Arena *arena, size_t size, u64 align);
 char *arena_push_cstr(Arena *arena, char *cstr);
 
-extern Arena *permanent_arena;
 Arena_Temp arena_temp_begin(Arena *arena);
 void arena_temp_end(Arena_Temp temp);
 

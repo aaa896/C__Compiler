@@ -120,7 +120,7 @@ void emmit_instructions( String *output , Assembly_Node *node)
             str_append_cstr( output, "\n");
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK) {
             str_append_cstr( output, "    subq $");
-            str_append_int(  output,  instruction->stack.operand.int_value );
+            str_append_int(  output,  instruction->alloc_stack.operand.int_value );
             str_append_cstr( output, " , %rsp\n");
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_RET) {
             str_append_cstr( output, "    movq %rbp, %rsp\n");

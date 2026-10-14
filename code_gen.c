@@ -33,6 +33,10 @@ void print_operand(Assembly_Node_Operand *operand)
     }else if (operand->type == ASSEMBLY_NODE_TYPE_OPERAND_STACK) {
         //printf("stack ");
         str_print(operand->identifier);
+    }else if (operand->type == ASSEMBLY_NODE_TYPE_OPERAND_REG_AX) {
+        printf("ax");
+    }else if (operand->type == ASSEMBLY_NODE_TYPE_OPERAND_REG_CX) {
+        printf("cx");
     }else if (operand->type == ASSEMBLY_NODE_TYPE_OPERAND_REG_EAX) {
         printf("eax");
     }else if (operand->type == ASSEMBLY_NODE_TYPE_OPERAND_REG_EDX) {
@@ -64,6 +68,11 @@ void print_assembly_nodes_pad(Assembly_Node *nodes, int start_padding, int paddi
             print_char_n(' ', start_padding);
             printf("}\n");
 
+        } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_INSTRUCTION_CALL) {
+
+            printf("Call: ");
+            str_print(nodes[i].function_call.name);
+            printf("\n");
         } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_PROGRAM) {
             printf("Program {\n");
             print_assembly_nodes_pad(nodes[i].program.functions, start_padding + padding_increment, padding_increment);
@@ -72,7 +81,7 @@ void print_assembly_nodes_pad(Assembly_Node *nodes, int start_padding, int paddi
 
         } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK) {
             printf("alloc stack(");
-            print_operand(&nodes[i].stack.operand);
+            print_operand(&nodes[i].alloc_stack.operand);
             printf(")\n");
         } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV) {
             printf("mov (");
@@ -206,9 +215,18 @@ void print_assembly_nodes_pad(Assembly_Node *nodes, int start_padding, int paddi
             print_operand(&nodes[i].jmp.operand);
             printf(")\n");
 
+        } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_INSTRUCTION_DEALLOCATE_STACK) {
+            printf("Stack Dealloc :");
+            print_operand(&nodes[i].dealloc_stack.operand);
+            printf("\n");
+        } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK) {
+            printf("Stack Alloc :");
+            print_operand(&nodes[i].alloc_stack.operand);
+            printf("\n");
         } else if (nodes[i].type == ASSEMBLY_NODE_TYPE_INSTRUCTION_RET) {
             printf("ret \n");
         } else {
+
             FAIL_MSG( "code gen uknown print\n");
         }
     }
@@ -232,7 +250,8 @@ Assembly_Node_Operand process_tac_operand(Tac_Node_Operand *operand)
         rv.identifier = str_join_cstr_str( "$", str_create_from_int( rv.int_value));
     }else if (operand->type == TAC_NODE_OPERAND_VAR) {
         rv.type = ASSEMBLY_NODE_TYPE_OPERAND_STACK;
-        rv.int_value = (operand->int_value + 1) * -4;
+        //rv.int_value = (operand->int_value + 1) * -4;
+        rv.int_value = (operand->int_value) *-1;
         rv.identifier = str_join_str_cstr( str_create_from_int( rv.int_value), "(%rbp)");
 
     }else if (operand->type == TAC_NODE_INSTRUCTION_LABEL) {
@@ -344,6 +363,37 @@ static void process_mov( Assembly_Node **instructions, Assembly_Node mov)
     }
 }
 
+
+static void process_push( Assembly_Node **instructions, Assembly_Node push)
+{
+    bool register_type = (push.push.operand.type > ASSEMBLY_REGISTER_OPERAND_BEGIN &&
+            push.push.operand.type < ASSEMBLY_REGISTER_OPERAND_END);
+    if (push.push.operand.type == ASSEMBLY_NODE_TYPE_OPERAND_INT || register_type ) {
+        array_append(instructions, push);
+    }else if (push.push.operand.type == ASSEMBLY_NODE_TYPE_OPERAND_STACK) {
+
+        Assembly_Node_Operand ax = {0};
+        ax.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_AX;
+        ax.identifier = str_create_from_cstr("%AX");
+        Assembly_Node mov_1 = ZERO_STRUCT;
+        mov_1.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
+        mov_1.mov.src = push.push.operand;
+        mov_1.mov.dest = ax;
+        //mov_1.mov.dest.identifier = str_create_from_cstr( "%r10d");
+        //Assembly_Node mov_2 = ZERO_STRUCT;
+        //mov_2.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
+        //mov_2.mov.src.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R10;
+        //mov_2.mov.src.identifier = str_create_from_cstr( "%r10d");
+        //mov_2.mov.dest = mov.mov.dest;
+        push.push.operand = ax;
+        array_append(instructions, mov_1);
+        array_append(instructions, push);
+        //array_append(instructions, mov_2);
+    }else {
+        ASSERT(0);
+    }
+}
+
 static void process_cmp( Assembly_Node **instructions, Assembly_Node cmp)
 {
     if (cmp.cmp.operand_a.type == ASSEMBLY_NODE_TYPE_OPERAND_INT) {
@@ -426,6 +476,11 @@ static void process_label( Assembly_Node **instructions, Assembly_Node label)
     array_append(instructions, label);
 }
 
+static void process_call( Assembly_Node **instructions, Assembly_Node call)
+{
+    array_append(instructions, call);
+}
+
 static void search_instruction( Assembly_Node **instructions, Tac_Node *tac_instructions) 
 {
     int tac_instruction_count = get_array_count(tac_instructions) ;
@@ -445,6 +500,82 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *tac_inst
             Assembly_Node ret = ZERO_STRUCT;
             ret.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_RET;
             array_append(instructions, ret);
+
+        }else if (instruction->type == TAC_NODE_INSTRUCTION_FUNCTION_CALL ){
+            //TODO global registers with get function with enum
+            Assembly_Node_Operand register_params[6] = {0};
+            register_params[0].type = ASSEMBLY_NODE_TYPE_OPERAND_REG_AX;
+            Assembly_Node_Operand ax =  register_params[0];
+            register_params[1].type = ASSEMBLY_NODE_TYPE_OPERAND_REG_CX;
+            register_params[2].type = ASSEMBLY_NODE_TYPE_OPERAND_REG_DI;
+            register_params[3].type = ASSEMBLY_NODE_TYPE_OPERAND_REG_SI;
+            register_params[4].type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R8;
+            register_params[5].type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R9;
+
+            int param_count = get_array_count(tac_instructions->instruction.function_call.params);
+            int stack_param_count = (param_count > 6 )? (param_count - 6) : 0;
+
+            if (stack_param_count) {
+                if (stack_param_count %2 != 0) {
+                    Assembly_Node alloc_stack = {0};
+                    alloc_stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK;
+                    alloc_stack.alloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
+                    alloc_stack.alloc_stack.operand.int_value = 8;
+                    alloc_stack.alloc_stack.operand.identifier = str_create_from_int( alloc_stack.alloc_stack.operand.int_value);
+                    array_append(instructions, alloc_stack);
+                }
+                //Assembly_Node alloc_stack = ZERO_STRUCT;
+                //alloc_stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK;
+                //alloc_stack.alloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
+                //alloc_stack.alloc_stack.operand.int_value = stack_increase;
+                //alloc_stack.alloc_stack.operand.identifier = str_create_from_int( alloc_stack.alloc_stack.operand.int_value);
+                //array_append(instructions, alloc_stack);
+            }
+
+            for (int reg_param_i = 0; reg_param_i < param_count; ++reg_param_i) {
+                Assembly_Node_Operand operand = process_tac_operand(&tac_instructions->instruction.function_call.params[reg_param_i]);
+                Assembly_Node mov = {0};
+                mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
+                mov.mov.src = operand;
+                mov.mov.dest = register_params[reg_param_i];
+                process_mov(instructions, mov);
+
+                if (reg_param_i == 6) {
+                    for (int stack_param_i = param_count - 1; stack_param_i >= 6; --stack_param_i) {
+                        Assembly_Node push = {0};
+                        push.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_PUSH_STACK;
+                Assembly_Node_Operand operand = process_tac_operand(&tac_instructions->instruction.function_call.params[stack_param_i]);
+                        push.push.operand = operand;
+                        process_push(instructions, push);
+                    }
+
+                    break;
+                }
+            }
+            Assembly_Node function_call = {0};
+            function_call.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_CALL;
+            function_call.function_call.name = str_clone(tac_instructions->instruction.function_call.name);
+            process_call(instructions, function_call);
+            if (stack_param_count) {
+                int dealloc_bytes = 0;
+                if (stack_param_count %2 != 0) {
+                    dealloc_bytes += 8;
+                }
+                Assembly_Node dealloc_stack = {0};
+                dealloc_stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_DEALLOCATE_STACK;
+                dealloc_stack.dealloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
+                dealloc_stack.dealloc_stack.operand.int_value = dealloc_bytes + (8 * stack_param_count);
+                dealloc_stack.dealloc_stack.operand.identifier = str_create_from_int(dealloc_stack.dealloc_stack.operand.int_value);
+                array_append(instructions, dealloc_stack);
+            }
+
+
+            Assembly_Node_Operand dest = process_tac_operand(&tac_instructions->instruction.function_call.dest);
+            Assembly_Node mov = {0};
+            mov.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
+            mov.mov.src = dest;
+            mov.mov.dest = ax;
+            process_mov(instructions, mov);
 
         }else if (instruction->type == TAC_NODE_INSTRUCTION_COPY ){
             Assembly_Node mov = ZERO_STRUCT;
@@ -540,9 +671,9 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *tac_inst
             Assembly_Node_Operand ecx = ZERO_STRUCT;
             ecx.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_ECX;
             ecx.identifier = str_create_from_cstr( "\%ecx");
-            Assembly_Node_Operand cx = ZERO_STRUCT;
-            cx.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_CL;
-            cx.identifier = str_create_from_cstr( "\%cl");
+            Assembly_Node_Operand cl = ZERO_STRUCT;
+            cl.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_CL;
+            cl.identifier = str_create_from_cstr( "\%cl");
 
             Assembly_Node mov1 = ZERO_STRUCT;
             mov1.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_MOV;
@@ -562,7 +693,7 @@ static void search_instruction( Assembly_Node **instructions, Tac_Node *tac_inst
                 shift.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_BINARY_BITWISE_SHIFT_LEFT;
             else
                 ASSERT(0);
-            shift.binary.src = cx;
+            shift.binary.src = cl;
             shift.binary.dest = mov1.mov.dest;
 
 
@@ -708,9 +839,9 @@ static void search_function( Assembly_Node **functions, Tac_Node *tac_function)
     function.function.name = str_clone( tac_function->function.name);
     Assembly_Node stack = ZERO_STRUCT;
     stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK;
-    stack.stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
-    stack.stack.operand.int_value = tac_function->function.stack_size * 4;
-    stack.stack.operand.identifier = str_create_from_int( stack.stack.operand.int_value);
+    stack.alloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
+    stack.alloc_stack.operand.int_value = tac_function->function.stack_size ;
+    stack.alloc_stack.operand.identifier = str_create_from_int( stack.alloc_stack.operand.int_value);
     array_append(&function.function.instructions, stack);
     search_instruction( &function.function.instructions, tac_function->function.instructions);
     array_append(functions, function);
