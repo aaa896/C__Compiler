@@ -122,6 +122,18 @@ void emmit_instructions( String *output , Assembly_Node *node)
             str_append_cstr( output, "    subq $");
             str_append_int(  output,  instruction->alloc_stack.operand.int_value );
             str_append_cstr( output, " , %rsp\n");
+        }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_DEALLOCATE_STACK) {
+            str_append_cstr( output, "    addq $");
+            str_append_int(  output,  instruction->alloc_stack.operand.int_value );
+            str_append_cstr( output, " , %rsp\n");
+        }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_PUSH_STACK) {
+            str_append_cstr( output, "    pushq ");
+            str_append_str(output, instruction->push.operand.identifier);
+            str_append_cstr(output, "\n");
+        }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_CALL) {
+            str_append_cstr( output, "    call ");
+            str_append_str(output, instruction->function_call.name);
+            str_append_cstr(output, "\n");
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_RET) {
             str_append_cstr( output, "    movq %rbp, %rsp\n");
             str_append_cstr( output, "    popq %rbp\n");
@@ -143,7 +155,6 @@ void emmit_function( String *output, Assembly_Node *node)
     str_append_str( output, node->function.name);
     str_append_cstr( output, ":\n");
     emmit_instructions( output, node->function.instructions);
-     str_append_cstr( output, ".section .note.GNU-stack,\"\",@progbits\n");
 }
 
 
@@ -159,6 +170,8 @@ String emmit_program( Assembly_Node *node)
         Assembly_Node *function = &node->program.functions[i];
         emmit_function( &output, function);
     }
+
+     str_append_cstr( &output, ".section .note.GNU-stack,\"\",@progbits\n");
     return output;
 }
 

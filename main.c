@@ -15,6 +15,7 @@
 
 int main(int argc, char**argv) 
 {
+    setvbuf(stdout, NULL, _IONBF, 0);
     arena_init();
     String input_name = {0};
     String output_name = {0};
@@ -23,7 +24,6 @@ int main(int argc, char**argv)
         input_name = str_create_from_cstr("input.c");
     } else {
         int current_argc = 1;
-        bool found_input_name = false;
         for (int i = 1; i <argc; ++i) {
             String_View arg = sv_from_cstr(argv[i]);
             if (sv_equals_cstr(arg, "-c")) {
@@ -31,7 +31,6 @@ int main(int argc, char**argv)
                 i += 1;
                 ASSERT(i < argc);
                 input_name =str_create_from_cstr(argv[i]); 
-                found_input_name = true;
 
                 i += 1;
                 ASSERT(i < argc);
@@ -39,9 +38,6 @@ int main(int argc, char**argv)
                 continue;
 
             }
-            if (found_input_name)
-                ASSERT(0);
-            found_input_name = true;
             input_name = str_create_from_cstr(argv[i]);
         }
     }

@@ -3,7 +3,6 @@
 
 #include "string.h"
 #include "lex.h"
-#include "register.h"
 
 #define PRECEDENCE_EQUAL                    1
 #define PRECEDENCE_CONDITIONAL              3
@@ -28,12 +27,17 @@
 
 typedef struct Parse_Node  Parse_Node;
 
+typedef enum {
+    LINKAGE_TYPE_ERROR,
+    LINKAGE_TYPE_NONE,
+    LINKAGE_TYPE_EXTERNAL,
+    LINKAGE_TYPE_INTERNAL,
+}Linkage_Type;
 
 
 typedef struct {
     char * key;
     int size;
-
 } Type;
 
 //typedef struct {
@@ -42,11 +46,22 @@ typedef struct {
 //    int stack_offset;
 //}Param_Table_Item;
 
+
+typedef enum{
+    VAR_TABLE_ITEM_TYPE_STACK,
+    //VAR_TABLE_ITEM_TYPE_REGISTER,
+}Var_Table_Item_Type ;
+
 typedef struct {
     char* key;
-    int  stack_index;
-    //int  scope_id;
-    Type type;
+    Var_Table_Item_Type type;
+    Linkage_Type linkage_type;
+    union {
+        struct {
+            int index;
+        }stack;
+    };
+    Type param_type;
 } Var_Table_Item;
 
 
@@ -63,14 +78,27 @@ typedef struct {
 } Typedef_Table_Item;
 
 
+
+typedef struct {
+    char* key;
+    Type  return_type;
+    Parse_Node *params;
+    //statements or declarations
+    Parse_Node *block_items;
+    //Parse_Table var_table;
+    int stack_count;
+    Linkage_Type linkage_type;
+}Function_Table_Item;
+
 typedef struct  {
     //Param_Table_Item  *param_items;
     Var_Table_Item       *var_items;
     Label_Table_Item     *label_items;
     Typedef_Table_Item   *typedef_items;
-    Parse_Node *function_declarations;
+    Function_Table_Item  *function_items;
+    //Parse_Node *function_declarations;
 
-    Type *valid_types;
+    Type *valid_type_items;
 
     Parse_Node *continue_label;
     Parse_Node *break_label;
@@ -89,7 +117,6 @@ typedef struct {
     int token_index;
     //int scope_id;
     //int next_scope_id;
-    int stack_count;
 }Parse_Data;
 
 typedef enum Parse_Type  Parse_Type;
@@ -160,7 +187,7 @@ struct Parse_Node  {
     union {
         struct {
             Parse_Data data;
-            Parse_Node *function_declarations;
+            //Parse_Node *function_declarations;
         }program;
 
         struct {
@@ -254,14 +281,7 @@ struct Parse_Node  {
                     Parse_Node *r_value;
                 }var;
                 struct {
-
-                    String name;
-                    String return_value_name;
-                    Parse_Node *params;
-                    //statements or declarations
-                    Parse_Node *block_items;
-                    //Parse_Table var_table;
-                    int stack_count;
+                    char*  item_name;
                 }function;
             };
         }declaration;
@@ -269,7 +289,6 @@ struct Parse_Node  {
         struct {
             Type type;
             String name;
-            Register register_type;
             int stack_offset;
         }parameter;
 
@@ -304,10 +323,11 @@ struct Parse_Node  {
                     //String var_name;
 
                     struct {
-                        Parse_Node *params;
+                        //expressions
+                        Parse_Node *args;
                         Type return_type;
-                        Type type;
-                        String name;
+                        //Type type;
+                        char* item_name;
                     }function_call;
                 };
 

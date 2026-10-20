@@ -4,6 +4,22 @@
 #include "tac.h"
 #include "string.h"
 
+    //REGISTER_TYPE_EDI,
+    //REGISTER_TYPE_ESI,
+    //REGISTER_TYPE_EDX,
+    //REGISTER_TYPE_ECX,
+    //REGISTER_TYPE_R8D,
+    //REGISTER_TYPE_R9D,
+
+    //REGISTER_TYPE_RDI,
+    //REGISTER_TYPE_RSI,
+    //REGISTER_TYPE_RDX,
+    //REGISTER_TYPE_RCX,
+    //REGISTER_TYPE_R8,
+    //REGISTER_TYPE_R9,
+
+
+
 typedef enum  Assembly_Node_Type Assembly_Node_Type;
 enum  Assembly_Node_Type {
     ASSEMBLY_NODE_TYPE_ERROR,
@@ -44,30 +60,37 @@ enum  Assembly_Node_Type {
     ASSEMBLY_NODE_TYPE_INSTRUCTION_SETL,
     ASSEMBLY_NODE_TYPE_INSTRUCTION_SETLE,
 
-    ASSEMBLY_REGISTER_OPERAND_BEGIN,
+    ASSEMBLY_NODE_TYPE_OPERAND_REGISTER_BEGIN,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_AX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_CX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_DI,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_SI,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R8 ,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_R8D ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R9 ,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_R9D ,
 
 
     ASSEMBLY_NODE_TYPE_OPERAND_REG_EAX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_AL,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_EDI,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_ESI,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_EDX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_DL,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_ECX,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_CL,
+    ASSEMBLY_NODE_TYPE_OPERAND_REG_R10D ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R10 ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R10B ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R11 ,
     ASSEMBLY_NODE_TYPE_OPERAND_REG_R11B ,
-    ASSEMBLY_REGISTER_OPERAND_END,
+    ASSEMBLY_NODE_TYPE_OPERAND_REGISTER_END,
 
     ASSEMBLY_NODE_TYPE_OPERAND_INT,
     ASSEMBLY_NODE_TYPE_OPERAND_STACK,
 };
+
+
 
 typedef struct Assembly_Node_Operand  Assembly_Node_Operand;
 struct Assembly_Node_Operand  {
@@ -122,9 +145,6 @@ struct Assembly_Node  {
         struct {
             Assembly_Node_Operand operand ;
         }push;
-        struct {
-            Assembly_Node_Operand operand;
-        }push_stack;
 
 
         struct {
@@ -149,6 +169,7 @@ struct Assembly_Node  {
 
 
 
+Assembly_Node_Operand get_register(Assembly_Node_Type type);
 Assembly_Node * create_code_gen( Tac_Node *tac_node) ;
 void print_assembly_nodes(Assembly_Node *nodes);
 void print_assembly_nodes_pad(Assembly_Node *nodes, int start_padding, int padding_increment);

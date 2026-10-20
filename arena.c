@@ -128,9 +128,17 @@ Arena* arena_alloc()
 }
 
 
+#ifdef STRING_USE_ARENA
+extern THREAD_LOCAL Arena *g_string_use_arena ;
+
+#endif
 
 void arena_init() 
 {
+#ifdef STRING_USE_ARENA
+    g_string_use_arena   = arena_alloc();
+#endif
+
     arena_scratch_alloc();
 }
 

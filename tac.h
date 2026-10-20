@@ -46,6 +46,7 @@ enum Tac_Node_Type  {
     TAC_NODE_INSTRUCTION_LABEL,
     TAC_NODE_INSTRUCTION_FUNCTION_CALL,
 
+
     //TAC_NODE_OPERAND_LABEL,
     TAC_NODE_OPERAND_INT,
     TAC_NODE_OPERAND_VAR,
@@ -69,7 +70,7 @@ struct Tac_Node  {
         struct {
             String name;
             String return_value_name;
-            Tac_Node_Operand *params;
+            int param_count;
             Tac_Node *instructions;
             int stack_size;
             bool return_statement;
@@ -92,6 +93,9 @@ struct Tac_Node  {
                     Tac_Node_Operand condition;
                     Tac_Node_Operand label;
                 }jmp;
+                struct {
+                    Tac_Node_Operand operand;
+                }push;
 
                 struct {
                     Tac_Node_Operand src;
@@ -108,6 +112,8 @@ struct Tac_Node  {
                     Tac_Node_Operand *params;
                     Tac_Node_Operand dest;
                 }function_call;
+
+             
             };
             
 

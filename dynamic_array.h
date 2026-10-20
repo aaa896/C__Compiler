@@ -17,6 +17,7 @@ typedef struct {
 }Array_Header;
 
 
+//Fowler–Noll–Vo hash
 #define hash_function(key, key_size, return_value) do{\
   return_value = 2166136261u;\
   for (int i = 0; i < key_size; ++i) {\
@@ -187,43 +188,41 @@ typedef struct{
     float _fill_percent = (float)(_count + 1)/ (float)_cap;\
     if (_fill_percent >= HASH_INCREASE_PERCENT) {\
         int _new_cap = _cap * 2;\
-        Hash_Map_Header *_hm_header = get_hm_header(*hm);\
+        Hash_Map_Header *_old_hm_header = get_hm_header(*hm);\
         void *_hm_new;\
         int _item_size = sizeof((*hm)[0]);\
         hash_create(&_hm_new, _item_size, _new_cap);\
-        bool *_new_occupied ;\
-        array_create(&_new_occupied, _new_cap);\
-        bool *_new_tombstone ;\
-        array_create(&_new_tombstone, _new_cap);\
+        Hash_Map_Header *_new_hm_header = get_hm_header(_hm_new);\
+        array_create(&_new_hm_header->occupied, _new_cap);\
+        array_create(&_new_hm_header->tombstone, _new_cap);\
         for (int _old_i   = 0; _old_i < _cap; ++_old_i ) {\
-            if (_hm_header->occupied[_old_i]) {\
+            if (_old_hm_header->occupied[_old_i]) {\
                 unsigned int _new_i = 0 ;\
                 hash_function(&(*hm)[_old_i].key, sizeof((*hm)[_old_i].key), _new_i) ;\
                 _new_i %= _new_cap;\
                 while (1) {\
-                    if (!_new_occupied[_new_i]) {\
+                    if (!_new_hm_header->occupied[_new_i]) {\
                         memcpy((uint8_t*)_hm_new + (_item_size * _new_i),  &(*hm)[_old_i], _item_size);\
-                        _new_occupied[_new_i] = true;\
-                        _new_tombstone[_new_i] = false;\
+                        _new_hm_header->occupied[_new_i] = true;\
+                        _new_hm_header->tombstone[_new_i] = false;\
                         break;\
                     }\
 \
                     if (_new_i == _new_cap)\
-                        _new_i = 0;\
+                        _new_i = -1;\
                     ++_new_i;\
                 }\
 \
             }\
         }\
 \
-        void *_old_ptr = *hm;\
+        _new_hm_header->count += _old_hm_header->count;\
+        array_free(&_old_hm_header->occupied);\
+        array_free(&_old_hm_header->tombstone);\
+        _cap = _new_hm_header->capacity;\
+        _count = _new_hm_header->count;\
+        hash_free(hm);\
         *hm  = _hm_new;\
-        hash_free(&_old_ptr);\
-        _cap = get_hm_capacity(*hm);\
-        _count = get_hm_count(*hm);\
-        Hash_Map_Header *_header= get_hm_header(*hm);\
-        _header->occupied = _new_occupied;\
-        _header->tombstone = _new_tombstone;\
 \
     }\
 \
@@ -255,16 +254,16 @@ typedef struct{
 \
 }while(0)
 
-#define hash_find(hm, item, return_value) do{\
+#define hash_find(hm, key_i, return_value) do{\
     int _cap = get_hm_capacity(hm);\
     unsigned int _index;\
-    hash_function(&item.key, sizeof(item.key), _index);\
+    hash_function(&key_i, sizeof(key_i), _index);\
     _index %= _cap;\
     return_value= -1;\
     Hash_Map_Header *_hm_header = get_hm_header(hm);\
     for (int search_count = 0; search_count < _cap; ++search_count) {\
         if (_hm_header->occupied[_index]) {\
-            if (hm[_index].key == item.key) {\
+            if (hm[_index].key == key_i) {\
                 return_value = _index;\
                 break;\
             }\
@@ -279,17 +278,17 @@ typedef struct{
     }\
 }while(0)
 
-#define hash_remove(hm, item, return_value) do{\
+#define hash_remove(hm, key_i, return_value) do{\
     int _cap = get_hm_capacity(hm);\
     unsigned int _index;\
-    hash_function(&item.key, sizeof(item.key),_index);\
+    hash_function(&key_i, sizeof(key_i),_index);\
     _index %= _cap;\
 \
     return_value = false;\
     Hash_Map_Header *_hm_header = get_hm_header(hm);\
     for (int search_count = 0; search_count < _cap; ++search_count) {\
         if (_hm_header->occupied[_index]) {\
-            if (hm[_index].key == item.key) {\
+            if (hm[_index].key == key_i) {\
                 _hm_header->occupied[_index] = false;\
                 _hm_header->tombstone[_index] = true;\
                 _hm_header->count -=1;\
@@ -310,8 +309,9 @@ typedef struct{
 #define cstr_hash_free(hm) do {\
     Hash_Map_Header *_header = get_hm_header(*hm);\
     for (int i = 0; i < _header->capacity; ++i) {\
-        if ((*hm)[i].key)\
+        if (_header->occupied[i]) {\
             free((*hm)[i].key);\
+        }\
     }\
     hash_free(hm);\
 }while(0)
@@ -334,51 +334,42 @@ typedef struct{
     float _fill_percent = (float)(_count + 1)/ (float)_cap;\
     if (_fill_percent >= HASH_INCREASE_PERCENT) {\
         int _new_cap = _cap * 2;\
-        Hash_Map_Header *_hm_header = get_hm_header(*hm);\
+        Hash_Map_Header *_old_hm_header = get_hm_header(*hm);\
         void *_hm_new;\
         int _item_size = sizeof((*hm)[0]);\
         hash_create(&_hm_new, _item_size, _new_cap);\
-        bool *_new_occupied ;\
-        array_create(&_new_occupied, _new_cap);\
-        bool *_new_tombstone ;\
-        array_create(&_new_tombstone, _new_cap);\
+        Hash_Map_Header *_new_hm_header = get_hm_header(_hm_new);\
+        array_create(&_new_hm_header->occupied, _new_cap);\
+        array_create(&_new_hm_header->tombstone, _new_cap);\
         for (int _old_i   = 0; _old_i < _cap; ++_old_i ) {\
-            if (_hm_header->occupied[_old_i]) {\
+            if (_old_hm_header->occupied[_old_i]) {\
                 unsigned int _new_i = 0 ;\
                 hash_function((*hm)[_old_i].key, strlen((*hm)[_old_i].key), _new_i) ;\
                 _new_i %= _new_cap;\
                 while (1) {\
-                    if (!_new_occupied[_new_i]) {\
+                    if (!_new_hm_header->occupied[_new_i]) {\
                         memcpy((uint8_t*)_hm_new + (_item_size * _new_i),  &(*hm)[_old_i], _item_size);\
-                        _new_occupied[_new_i] = true;\
-                        _new_tombstone[_new_i] = false;\
+                        _new_hm_header->occupied[_new_i] = true;\
+                        _new_hm_header->tombstone[_new_i] = false;\
                         break;\
                     }\
 \
-                    if (_new_i == _new_cap)\
-                        _new_i = 0;\
+                    if (_new_i == _new_cap){\
+                        _new_i = -1;\
+                    }\
                     ++_new_i;\
                 }\
 \
             }\
         }\
+        _new_hm_header->count += _old_hm_header->count;\
+        array_free(&_old_hm_header->occupied);\
+        array_free(&_old_hm_header->tombstone);\
+        _cap = _new_hm_header->capacity;\
+        _count = _new_hm_header->count;\
 \
-        void *_old_ptr = *hm;\
-        *hm  = _hm_new;\
-        _cap = get_hm_capacity(*hm);\
-        _count = get_hm_count(*hm);\
-        Hash_Map_Header *_header= get_hm_header(*hm);\
-        _header->occupied = _new_occupied;\
-        _header->tombstone = _new_tombstone;\
-        for (int i = 0; i < _header->capacity; ++i) {\
-            if (_header->occupied[i]) {\
-                (*hm)[i].key = strdup((*hm)[i].key);\
-            }\
-        }\
-        void * _hold = *hm;\
-        *hm =  _old_ptr;\
-        cstr_hash_free(hm);\
-        *hm = _hold;\
+        hash_free(hm);\
+        *hm = _hm_new;\
 \
     }\
 \
@@ -388,18 +379,16 @@ typedef struct{
     _index %= _cap;\
     while (1) {\
         if (cstr_equals_cstr(item.key ,(*hm)[_index].key )) {\
-            bool _tombstone = _hm_header->tombstone[_index];\
+            char *_key = strdup(item.key);\
             (*hm)[_index] = item;\
-            (*hm)[_index].key = strdup((*hm)[_index].key);\
+            (*hm)[_index].key = _key;\
             _hm_header->occupied[_index] = true;\
-            _hm_header->tombstone[_index] = _tombstone;\
             break;\
         } else if (!_hm_header->occupied[_index]) {\
-            bool _tombstone = _hm_header->tombstone[_index];\
+            char *_key = strdup(item.key);\
             (*hm)[_index] = item;\
-            (*hm)[_index].key = strdup((*hm)[_index].key);\
+            (*hm)[_index].key = _key;\
             _hm_header->occupied[_index] = true;\
-            _hm_header->tombstone[_index] = _tombstone;\
             _hm_header->count +=1;\
             break;\
         }\
@@ -412,17 +401,17 @@ typedef struct{
 \
 }while(0)
 
-#define cstr_hash_find(hm, item, return_value) do{\
+#define cstr_hash_find(hm, key_i, return_value) do{\
     if (hm) {\
     int _cap = get_hm_capacity(hm);\
     unsigned int _index;\
-    hash_function(item.key, strlen(item.key), _index);\
+    hash_function(key_i, strlen(key_i), _index);\
     _index %= _cap;\
     return_value= -1;\
     Hash_Map_Header *_hm_header = get_hm_header(hm);\
     for (int search_count = 0; search_count < _cap; ++search_count) {\
         if (_hm_header->occupied[_index]) {\
-            if (!strcmp(hm[_index].key ,item.key)) {\
+            if (!strcmp(hm[_index].key ,key_i)) {\
                 return_value = _index;\
                 break;\
             }\
@@ -440,17 +429,18 @@ typedef struct{
     }\
 }while(0)
 
-#define cstr_hash_remove(hm, item, return_value) do{\
+#define cstr_hash_remove(hm, key_i, return_value) do{\
     int _cap = get_hm_capacity(hm);\
     unsigned int _index;\
-    hash_function(item.key, strlen(item.key),_index);\
+    hash_function(key_i, strlen(key_i),_index);\
     _index %= _cap;\
 \
     return_value = false;\
     Hash_Map_Header *_hm_header = get_hm_header(hm);\
     for (int search_count = 0; search_count < _cap; ++search_count) {\
         if (_hm_header->occupied[_index]) {\
-            if (!strcmp(hm[_index].key,item.key)) {\
+            if (!strcmp(hm[_index].key,key_i)) {\
+                free(hm[_index].key);\
                 _hm_header->occupied[_index] = false;\
                 _hm_header->tombstone[_index] = true;\
                 _hm_header->count -=1;\

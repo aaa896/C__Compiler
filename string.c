@@ -10,6 +10,7 @@
 
 #ifdef STRING_USE_ARENA
 #include "arena.h"
+THREAD_LOCAL Arena *g_string_use_arena ;
 
 
 int get_cstr_len(char *s1) {
@@ -73,7 +74,7 @@ void str_print(String s)
 char *str_convert_to_cstr( String str)
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
-    char *rv = arena_push_array(scratch.arena, char, str.size + 1);
+    char *rv = arena_push_array(g_string_use_arena, char, str.size + 1);
     memcpy(rv, str.data, str.size);
     rv[str.size] = 0;
     return rv;
@@ -85,7 +86,7 @@ String str_create_from_cstr( char *cstr)
     String str = {0};
     str.size =get_cstr_len(cstr) ;
     str.capacity  = (str.size > STRING_DEFAULT_CAPACITY) ? (str.size * 2) : (STRING_DEFAULT_CAPACITY);
-    str.data = arena_push_array(scratch.arena, char, str.capacity);
+    str.data = arena_push_array(g_string_use_arena, char, str.capacity);
     memcpy(str.data, cstr, str.size);
     return str;
 }
@@ -96,7 +97,7 @@ String str_create_from_sv( String_View sv)
     String str = {0};
     str.size =sv.count;
     str.capacity  = (str.size > STRING_DEFAULT_CAPACITY) ? (str.size * 2) : (STRING_DEFAULT_CAPACITY);
-    str.data = arena_push_array(scratch.arena, char, str.capacity);
+    str.data = arena_push_array(g_string_use_arena, char, str.capacity);
     memcpy(str.data, sv.data, sv.count);
     return str;
 }
@@ -107,7 +108,7 @@ String str_clone( String str)
     String rv  = {0};
     rv.size = str.size;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data = arena_push_array(scratch.arena, char, rv.capacity);
+    rv.data = arena_push_array(g_string_use_arena, char, rv.capacity);
     memcpy(rv.data, str.data, rv.size);
     return rv;
 }
@@ -126,7 +127,7 @@ String str_read_file_from_cstr( char *path)
     fseek(file, 0, SEEK_SET);
     rv.size = size;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data =arena_push_array(scratch.arena, char,rv.capacity);
+    rv.data =arena_push_array(g_string_use_arena, char,rv.capacity);
     fread(rv.data, 1, size, file);
     fclose(file);
     return rv;
@@ -170,7 +171,7 @@ String str_join_str_str( String s1, String s2)
     String rv = {0};
     rv.size = s1.size + s2.size;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data = arena_push_array(scratch.arena, char, rv.capacity);
+    rv.data = arena_push_array(g_string_use_arena, char, rv.capacity);
     memcpy(rv.data, s1.data  , s1.size);
     memcpy(&rv.data[s1.size], s2.data, s2.size);
     return rv;
@@ -185,7 +186,7 @@ String str_join_cstr_cstr ( char* cstr_1, char *cstr_2)
     int clen_2 = get_cstr_len(cstr_2);
     rv.size = clen_1 + clen_2;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data = arena_push_array(scratch.arena, char, rv.capacity);
+    rv.data = arena_push_array(g_string_use_arena, char, rv.capacity);
     memcpy(rv.data, cstr_1  , clen_1);
     memcpy(&rv.data[clen_1], cstr_2, clen_2);
     return rv;
@@ -199,7 +200,7 @@ String str_join_str_cstr ( String s1, char *cstr)
     int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data = arena_push_array(scratch.arena, char, rv.capacity);
+    rv.data = arena_push_array(g_string_use_arena, char, rv.capacity);
     memcpy(rv.data, s1.data  , s1.size);
     memcpy(&rv.data[s1.size], cstr, cstr_count);
     return rv;
@@ -213,7 +214,7 @@ String str_join_cstr_str ( char *cstr, String s1 )
     int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data = arena_push_array(scratch.arena, char, rv.capacity);
+    rv.data = arena_push_array(g_string_use_arena, char, rv.capacity);
     memcpy(rv.data, cstr  , cstr_count);
     memcpy(&rv.data[cstr_count], s1.data, s1.size);
     return rv;
@@ -226,7 +227,7 @@ String str_join_cstr_sv( char *cstr, String s1)
     int cstr_count = get_cstr_len(cstr);
     rv.size = s1.size + cstr_count;
     rv.capacity  = (rv.size > STRING_DEFAULT_CAPACITY) ? (rv.size * 2) : (STRING_DEFAULT_CAPACITY);
-    rv.data = arena_push_array(scratch.arena, char,rv.capacity);
+    rv.data = arena_push_array(g_string_use_arena, char,rv.capacity);
     memcpy(rv.data, cstr  , cstr_count);
     memcpy(&rv.data[cstr_count], s1.data, s1.size);
     return rv;
@@ -237,7 +238,7 @@ String str_join_cstr_sv( char *cstr, String s1)
 void str_resize_capacity( String *s1, size_t cap)
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
-    char * new_data = arena_push_array(scratch.arena, char, cap);
+    char * new_data = arena_push_array(g_string_use_arena, char, cap);
     ASSERT(new_data);
     if (cap < (size_t)s1->size)
         s1->size = cap;
@@ -326,7 +327,7 @@ char* cstr_create_from_int( int x)
     char buff[32] ;
     snprintf(buff, buff_size, "%d", x);
     int slen = get_cstr_len(buff);
-    char *rv = arena_push_array(scratch.arena, char, slen);
+    char *rv = arena_push_array(g_string_use_arena, char, slen);
     return rv;
 }
 
@@ -468,7 +469,7 @@ b32 sv_equals_cstr(String_View sv , char *s)
 char *  sv_convert_to_cstr(String_View sv) 
 {
     Arena_Temp scratch = arena_scratch_begin(0,0);
-    char * rv = arena_push_array(scratch.arena, char,sv.count + 1);
+    char * rv = arena_push_array(g_string_use_arena, char,sv.count + 1);
     memcpy(rv, sv.data, sv.count);
     rv[sv.count] = 0;
     return rv;
