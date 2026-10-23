@@ -32,7 +32,7 @@ void emmit_instructions( String *output , Assembly_Node *node)
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_CDQ) {
             str_append_cstr( output, "    cdq\n");
         }else if (instruction->type == ASSEMBLY_NODE_TYPE_INSTRUCTION_IDIV) {
-            str_append_cstr( output, "    idiv ");
+            str_append_cstr( output, "    idivl ");
             str_append_str( output, instruction->idiv.operand.identifier);
             str_append_cstr( output, "\n");
 

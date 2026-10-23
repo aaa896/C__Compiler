@@ -2,52 +2,48 @@
 main:
     pushq %rbp
     movq %rsp, %rbp
-    subq $-8 , %rsp
-    movl $1 , -4(%rbp)
-    movl -4(%rbp) , %edi
-    movl $2 , %esi
-    movl $3 , %edx
-    movl $4 , %ecx
-    movl $5 , %r8d
-    movl $6 , %r9d
-    pushq $8
-    pushq $7
-    call fun
-    addq $16 , %rsp
-    movl %eax , -8(%rbp)
-    movl -8(%rbp) , %r10d
+    subq $20 , %rsp
+    call foo
+    movl %eax , -12(%rbp)
+    movl -12(%rbp) , %r10d
     movl %r10d , -4(%rbp)
+    cmpl $0,-4(%rbp)
+    movl $0 , -16(%rbp)
+    setg -16(%rbp)
+    movl $0 , %r11d
+    cmpl -16(%rbp),%r11d
+    je .Llabel.0
+    movl $3 , -8(%rbp)
+    movl -4(%rbp) , %r10d
+    movl %r10d , -20(%rbp)
+    movl -8(%rbp) , %r10d
+    addl %r10d , -20(%rbp)
+    movl -20(%rbp) , %r10d
+    movl %r10d , -4(%rbp)
+    jmp .Llabel.1
+.Llabel.0:
+.Llabel.1:
+    addq $20 , %rsp
     movl -4(%rbp) , %eax
     movq %rbp, %rsp
     popq %rbp
     ret
+    addq $20 , %rsp
     movl $0 , %eax
     movq %rbp, %rsp
     popq %rbp
     ret
-    .global fun
-fun:
+    .global foo
+foo:
     pushq %rbp
     movq %rsp, %rbp
-    subq $-68 , %rsp
-    movl %edi , -8(%rbp)
-    movl %esi , -16(%rbp)
-    movl %edx , -24(%rbp)
-    movl %ecx , -32(%rbp)
-    movl %r8d , -40(%rbp)
-    movl %r9d , -48(%rbp)
-    movl 16(%rbp) , %r10d
-    movl %r10d , -56(%rbp)
-    movl 24(%rbp) , %r10d
-    movl %r10d , -64(%rbp)
-    movl -8(%rbp) , %r10d
-    movl %r10d , -68(%rbp)
-    movl -64(%rbp) , %r10d
-    addl %r10d , -68(%rbp)
-    movl -68(%rbp) , %eax
+    subq $0 , %rsp
+    addq $0 , %rsp
+    movl $4 , %eax
     movq %rbp, %rsp
     popq %rbp
     ret
+    addq $0 , %rsp
     movl $0 , %eax
     movq %rbp, %rsp
     popq %rbp

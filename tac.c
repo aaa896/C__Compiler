@@ -510,53 +510,10 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions,Parse_Data
             str_append_cstr(&function_call.instruction.function_call.name, "@PLT");
         }
         int param_count = get_array_count(function_item->params);
-        //bool pad_stack = false;
-        //if (param_count > 6) {
-        //    pad_stack = (param_count -6) %2 != 0;
-        //    if (pad_stack) {
-        //        Tac_Node alloc_stack = {0};
-        //        alloc_stack.type = TAC_NODE_INSTRUCTION_ALLOC_STACK;
-        //        alloc_stack.instruction.alloc_stack.amount = 8;
-        //        array_append(tac_instructions, alloc_stack);
-        //    }
-        //}
         for (int i = 0 ; i < param_count; ++i) {
             //if (i <=5) {
                 Tac_Node_Operand param = create_tac_instructions( tac_instructions,parse_data, &parse_expression->expression.factor.function_call.args[i]);
                 array_append(&function_call.instruction.function_call.params, param);
-//                Tac_Node_Operand reg = {0};
-//                reg.type = TAC_NODE_OPERAND_REGISTER;
-//
-//                if (i == 0) {
-//                    reg.register_type = REGISTER_TYPE_EDI;
-//                }else if (i == 1) {
-//                    reg.register_type = REGISTER_TYPE_ESI;
-//                }else if (i == 2) {
-//                    reg.register_type = REGISTER_TYPE_EDX;
-//                }else if (i == 3) {
-//                    reg.register_type = REGISTER_TYPE_ECX;
-//                }else if (i == 4) {
-//                    reg.register_type = REGISTER_TYPE_R8D;
-//                }else if (i == 5) {
-//                    reg.register_type = REGISTER_TYPE_R9D;
-//                }
-//
-//                Tac_Node copy = {0};
-//                copy.type = TAC_NODE_INSTRUCTION_COPY;
-//                copy.instruction.copy.src = param;
-//                copy.instruction.copy.dest = rv;
-//                array_append(tac_instructions, copy);
-//
-            //} else {
-            //    for (int i = param_count -1; i > 5; --i) {
-            //        Tac_Node_Operand param = create_tac_instructions( tac_instructions, &parse_expression->expression.factor.function_call.params[i]);
-            //        array_append(&function_call.instruction.function_call.params, param);
-            //        Tac_Node push = {0};
-            //        push.instruction.operand = param;
-            //        array_append(tac_instructions, push);
-            //    }
-            //    break;
-            //}
         }
         Tac_Node_Operand dest = ZERO_STRUCT;
         dest.type =TAC_NODE_OPERAND_VAR; 
@@ -567,29 +524,6 @@ Tac_Node_Operand create_tac_instructions( Tac_Node **tac_instructions,Parse_Data
         function_call.instruction.function_call.dest = dest;
 
         array_append(tac_instructions, function_call);
-//        Tac_Node copy = {0};
-//        copy.type = TAC_NODE_INSTRUCTION_COPY;
-//
-//        Tac_Node_Operand reg = {0};
-//        reg.type = TAC_NODE_OPERAND_REGISTER;
-//        reg.register_type = REGISTER_TYPE_EAX;
-//
-//
-//
-//        copy.instruction.copy.src = reg;
-//        copy.instruction.copy.dest = dest;
-//        array_append(tac_instructions, copy);
-//        if (param_count > 6) {
-//                Tac_Node dealloc_stack = {0};
-//                dealloc_stack.type = TAC_NODE_INSTRUCTION_DEALLOC_STACK;
-//                dealloc_stack.instruction.dealloc_stack.amount = 8 * (param_count - 6);
-//                if (pad_stack) {
-//                    dealloc_stack.instruction.dealloc_stack.amount += 8;
-//                }
-//                array_append(tac_instructions, dealloc_stack);
-//        }
-//
-//
         return dest;
     }else if (parse_expression->type == PARSE_TYPE_EXP_FACTOR_INT) {
         Tac_Node_Operand operand = ZERO_STRUCT;
@@ -1081,29 +1015,11 @@ Tac_Node * create_tac_nodes( Parse_Node *parse_program)
                 continue;
             }
 
-            //var_name_index = 0;
             label_name_index = 0;
         }
     }
 
 
-    //int  function_count = get_array_count(parse_program->program.function_declarations);
-    //int no_body_count = 0;
-    //for (size_t total_i = 0; total_i < function_count; ++total_i) {
-    //    int i = total_i - no_body_count;
-    //    var_name_index = parse_program->program.function_declarations[total_i].declaration.function.stack_count;
-    //    //    var_name_index += parse_var_count;
-    //    b32 function_body = create_tac_functions( &tac_program.program.functions, &parse_program->program.function_declarations[total_i]);
-    //    if (!function_body) {
-    //        ++no_body_count;
-    //        continue;
-    //    }
-
-    //    tac_program.program.functions[i].function.stack_size =  var_name_index;
-    //    var_name_index = 0;
-    //    label_name_index = 0;
-    //}
-    //int tac_function_count = get_array_count(tac_program.program.functions);
     Tac_Node *rv = 0;
     array_append(&rv, tac_program);
     return rv;

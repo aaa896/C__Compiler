@@ -109,9 +109,11 @@ typedef struct {
 
 #define array_free(array)\
     do{\
-        Array_Header *header = ((Array_Header*)(*array)) - 1;\
-        free(header);\
-        (*array) = 0;\
+        if (*array){\
+            Array_Header *header = ((Array_Header*)(*array)) - 1;\
+            free(header);\
+            (*array) = 0;\
+        }\
     }while(0)
 
 

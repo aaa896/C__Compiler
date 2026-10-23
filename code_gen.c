@@ -520,16 +520,15 @@ static void process_idiv( Assembly_Node **instructions, Assembly_Node idiv)
 
 static void process_set( Assembly_Node **instructions, Assembly_Node set)
 {
-    if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_EAX)
-        set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_AL;
-    else if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_EDX)
-        set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_DL;
-    else if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_R10D)
-        set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R10B;
-    else if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_R11)
-        set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R11B;
-    else 
-        ASSERT(0);
+    //if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_EAX)
+    //    set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_AL;
+    //else if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_EDX)
+    //    set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_DL;
+    //else if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_R10D)
+    //    set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R10B;
+    //else if (set.type == ASSEMBLY_NODE_TYPE_OPERAND_REG_R11)
+    //    set.type = ASSEMBLY_NODE_TYPE_OPERAND_REG_R11B;
+
     array_append(instructions, set);
 }
 
@@ -549,12 +548,23 @@ static void process_call( Assembly_Node **instructions, Assembly_Node call)
     array_append(instructions, call);
 }
 
-static void search_instruction( Assembly_Node **assembly_instructions, Tac_Node *tac_instructions) 
+static void search_instruction( Assembly_Node **assembly_instructions, Tac_Node *tac_function) 
 {
-    int tac_instruction_count = get_array_count(tac_instructions) ;
+    int tac_instruction_count = get_array_count(tac_function->function.instructions) ;
     for (int i = 0; i < tac_instruction_count; ++i) {
-        Tac_Node *tac_current_instruction = &tac_instructions[i];
+        Tac_Node *tac_current_instruction = &tac_function->function.instructions[i];
         if (tac_current_instruction->type == TAC_NODE_INSTRUCTION_RETURN ){
+            Assembly_Node dealloc_stack = {0};
+            dealloc_stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_DEALLOCATE_STACK;
+            dealloc_stack.dealloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
+            dealloc_stack.dealloc_stack.operand.int_value =  -1 * tac_function->function.stack_size ;
+            dealloc_stack.dealloc_stack.operand.identifier = str_create_from_int(dealloc_stack.dealloc_stack.operand.int_value);
+            array_append(assembly_instructions, dealloc_stack);
+
+
+
+
+
             Tac_Node_Operand *operand = &tac_current_instruction->instruction.return_operand;
 
             Assembly_Node mov = ZERO_STRUCT;
@@ -907,9 +917,13 @@ static void search_function( Assembly_Node **functions, Tac_Node *tac_function)
     Assembly_Node stack = ZERO_STRUCT;
     stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_ALLOCATE_STACK;
     stack.alloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
-    stack.alloc_stack.operand.int_value = tac_function->function.stack_size ;
+    stack.alloc_stack.operand.int_value = -1 * tac_function->function.stack_size ;
     stack.alloc_stack.operand.identifier = str_create_from_int( stack.alloc_stack.operand.int_value);
     array_append(&function.function.instructions, stack);
+
+
+
+
     int param_count = tac_function->function.param_count;
 
     for (int i = 0; i < param_count; ++i) {
@@ -969,7 +983,15 @@ static void search_function( Assembly_Node **functions, Tac_Node *tac_function)
 
 
     
-    search_instruction( &function.function.instructions, tac_function->function.instructions);
+    search_instruction( &function.function.instructions, tac_function);
+
+    //Assembly_Node dealloc_stack = {0};
+    //dealloc_stack.type = ASSEMBLY_NODE_TYPE_INSTRUCTION_DEALLOCATE_STACK;
+    //dealloc_stack.dealloc_stack.operand.type = ASSEMBLY_NODE_TYPE_OPERAND_INT;
+    //dealloc_stack.dealloc_stack.operand.int_value = tac_function->function.stack_size ;
+    //dealloc_stack.dealloc_stack.operand.identifier = str_create_from_int(dealloc_stack.dealloc_stack.operand.int_value);
+    //array_append(&function.function.instructions, dealloc_stack);
+
     array_append(functions, function);
 }
 

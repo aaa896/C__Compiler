@@ -32,8 +32,9 @@ static String create_label(char *name, int id) {
     return str;
 }
 
+void parse_function_declaration(Parse_Data *data, Parse_Table *current_scope_table) ;
 void parse_declaration_var(Parse_Data *data, Function_Table_Item *function_item, Parse_Node **root) ;
-bool peek_declaration(Type *valid_type_items, Token *tokens, int token_index) ;
+bool peek_declaration_var(Type *valid_type_items, Token *tokens, int token_index) ;
 int peek_token(Token *tokens, int token_index, Token_Type type) ;
 void parse_expression(Parse_Data *data, Parse_Node **expression_root, int min_precedence) ;
 void parse_block_items(Parse_Data *data, Function_Table_Item *function_item, Parse_Node **root) ;
@@ -224,8 +225,11 @@ void free_parse_nodes(Parse_Node *nodes) {
             array_free(&node->expression.binop.right);
         }else if (node->type == PARSE_TYPE_STATEMENT_IF) {
             free_parse_nodes(node->statement.if_statement.condition);
+
             array_free(&node->statement.if_statement.condition);
+
             free_parse_nodes(node->statement.if_statement.then);
+            array_free(&node->statement.if_statement.then);
 
             if (node->statement.if_statement.else_clause) {
                 free_parse_nodes(node->statement.if_statement.else_clause);
@@ -308,6 +312,11 @@ void free_parse_nodes(Parse_Node *nodes) {
             free_parse_nodes(node->statement.default_statement.body_statement);
             array_free(&node->statement.default_statement.body_statement);
         }else if (node->type == PARSE_TYPE_EXP_FACTOR_FUNCTION_CALL) {
+            int arg_count = get_array_count(node->expression.factor.function_call.args);
+            for (int i = 0; i < arg_count; ++i) {
+                free_parse_nodes(&node->expression.factor.function_call.args[i]);
+            }
+
             array_free(&node->expression.factor.function_call.args);
         }else if (node->type == PARSE_TYPE_PARAMETER) {
             //str_free(&node->parameter.name);
@@ -944,6 +953,33 @@ int peek_token(Token *tokens, int token_index, Token_Type type)
     return (tokens[token_index].type == type);
 }
 
+bool expression_type_matches(Parse_Node *expression, char *type) {
+    if (expression->type == PARSE_TYPE_EXP_FACTOR_VAR) {
+        if (!cstr_equals_cstr(expression->expression.factor.var.item.param_type.key, type)) {
+            return false;
+        }
+        return true;
+
+    } else  if (expression->type > PARSE_TYPE_EXP_FACTOR_UNOP_BEGIN && 
+            expression->type  < PARSE_TYPE_EXP_FACTOR_UNOP_END) {
+        bool result = expression_type_matches(expression->expression.factor.unop.next, type);
+        return result;
+    } else  if (expression->type == PARSE_TYPE_EXP_FACTOR_INT) {
+        if (!cstr_equals_cstr("int", type)) {
+            return false;
+        }
+        return true;
+
+    } else  if (expression->type > PARSE_TYPE_EXP_BINOP_START &&
+            expression->type < PARSE_TYPE_EXP_BINOP_END) {
+        bool left_match = expression_type_matches(expression->expression.binop.left, type);
+        bool right_match = expression_type_matches(expression->expression.binop.right, type);
+        return (left_match && right_match);
+    } else {
+        return false;
+    }
+}
+
 
 void parse_factor(Parse_Data *data, Parse_Node **factor_root)
 {
@@ -972,27 +1008,44 @@ void parse_factor(Parse_Data *data, Parse_Node **factor_root)
             function_call.expression.factor.function_call.item_name = function_name;
             data->token_index += 2;
             int hash_index ;
-            cstr_hash_find(data->global_table.function_items, function_name, hash_index);
-            ASSERT(hash_index != -1);
 
-            Function_Table_Item * function = &data->global_table.function_items[hash_index];
+            Function_Table_Item *function;
+            {
+                int current_scope = get_array_count(data->scope_tables) -1;
+                Parse_Table *current_scope_table = &data->scope_tables[current_scope];
+                cstr_hash_find(current_scope_table->var_items, function_name, hash_index);
+                ASSERT(hash_index == -1);
+                while (current_scope >= 0) {
+                    Parse_Table *current_scope_table = &data->scope_tables[current_scope];
+                    cstr_hash_find(current_scope_table->function_items, function_name, hash_index);
+                    if (hash_index != -1) {
+                        function = &data->scope_tables[current_scope].function_items[hash_index];
+                        break;
+                    }
+                    --current_scope;
+                }
+
+            }
+            if (hash_index == -1) {
+                cstr_hash_find(data->global_table.function_items, function_name, hash_index);
+                function = &data->global_table.function_items[hash_index];
+            }
+            ASSERT(hash_index != -1);
+            int current_scope = get_array_count(data->scope_tables) -1;
+            Parse_Table *current_scope_table = &data->scope_tables[current_scope];
+            cstr_hash_find(current_scope_table->var_items, function_name, hash_index);
+            ASSERT(hash_index == -1);
+
             int function_param_count = get_array_count(function->params);
+            if (!function_param_count) {
+                data->token_index +=1;
+            }
             for (int i = 0; i < function_param_count ; ++i) {
                 ASSERT(!peek_token(*data->tokens, data->token_index , TOKEN_TYPE_CLOSE_PAREN));
                 Parse_Node *function_param = &function->params[i];
                 Parse_Node *call_param  = 0;
-                parse_factor(data, &call_param);
-                if (call_param->type == PARSE_TYPE_EXP_FACTOR_VAR) {
-                    if (!cstr_equals_cstr(call_param->expression.factor.var.item.param_type.key, function_param->parameter.type.key)) {
-                        ASSERT(0);
-                    }
-                } else  if (call_param->type == PARSE_TYPE_EXP_FACTOR_INT) {
-                    if (!cstr_equals_cstr("int", function_param->parameter.type.key)) {
-                        ASSERT(0);
-                    }
-                } else {
-                    ASSERT(0);
-                }
+                parse_expression(data, &call_param, 0);
+                ASSERT(expression_type_matches(call_param, function_param->parameter.type.key));
                 
 
                 if (!peek_token(*data->tokens, data->token_index , TOKEN_TYPE_COMMA)) {
@@ -1001,6 +1054,7 @@ void parse_factor(Parse_Data *data, Parse_Node **factor_root)
                 } 
                 array_append(&function_call.expression.factor.function_call.args, *call_param);
                 array_free(&call_param);
+
                 data->token_index += 1;
             }
             array_append(factor_root, function_call);
@@ -1241,6 +1295,27 @@ int get_precedence(Parse_Type binop)
     if (binop == PARSE_TYPE_EXP_CONDITIONAL)
         return PRECEDENCE_CONDITIONAL;
     ASSERT(0);
+
+}
+
+void free_scope_data(Parse_Table *table) {
+    if (!table)
+        return;
+    if (table->function_items) {
+        Hash_Map_Header *header = get_hm_header(table->function_items);
+        for (int cap_i = 0; cap_i < header->capacity; ++cap_i) {
+            if (header->occupied[cap_i]) {
+                int param_count = get_array_count(table->function_items[cap_i].params);
+                for (int param_i = 0; param_i < param_count; ++param_i) {
+                    free_parse_nodes(&table->function_items[cap_i].params[param_i]);
+                }
+                array_free(&table->function_items[cap_i].params);
+            }
+
+        }
+        cstr_hash_free(&table->function_items);
+    }
+    if (table->var_items) cstr_hash_free(&table->var_items);
 
 }
 
@@ -1541,6 +1616,7 @@ void parse_statement(Parse_Data *data, Function_Table_Item *function_item, Parse
 
             Parse_Table new_scope_table = data->scope_tables[(get_array_count(data->scope_tables)) -1];
             new_scope_table.var_items = 0;
+            new_scope_table.function_items = 0;
             array_append(&data->scope_tables, new_scope_table);
             //parse_block_items(data, &compound_statement.statement.compound.block_items);
             //if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items)
@@ -1559,7 +1635,7 @@ void parse_statement(Parse_Data *data, Function_Table_Item *function_item, Parse
             //} 
 
 
-            if (peek_declaration(data->global_table.valid_type_items, *data->tokens, data->token_index)) {
+            if (peek_declaration_var(data->global_table.valid_type_items, *data->tokens, data->token_index)) {
                 parse_declaration_var(data, function_item, &loop_node.statement.for_statement.init);
             } else {
                 if (peek_token(*data->tokens, data->token_index, TOKEN_TYPE_SEMICOLON)) {
@@ -1597,8 +1673,12 @@ void parse_statement(Parse_Data *data, Function_Table_Item *function_item, Parse
             //    parse_statement(data, &loop_node.statement.for_statement.body_statement);
             //}
             parse_statement(data,function_item, &loop_node.statement.for_statement.body_statement);
-            if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items)
-                cstr_hash_free(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items);
+
+//            if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items)
+//                cstr_hash_free(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items);
+            int scope_index = get_array_count(data->scope_tables) -1;
+            free_scope_data(&data->scope_tables[scope_index]);
+
             array_add_size_count(&data->scope_tables, -1);
 
 
@@ -1621,10 +1701,14 @@ void parse_statement(Parse_Data *data, Function_Table_Item *function_item, Parse
 
         Parse_Table new_scope_table = data->scope_tables[(get_array_count(data->scope_tables)) -1];
         new_scope_table.var_items = 0;
+        new_scope_table.function_items = 0;
         array_append(&data->scope_tables, new_scope_table);
         parse_block_items(data, function_item, &compound_statement.statement.compound.block_items);
-        if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items)
-            cstr_hash_free(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items);
+//        if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items)
+//            cstr_hash_free(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items);
+        int scope_index = get_array_count(data->scope_tables) -1;
+        free_scope_data(&data->scope_tables[scope_index]);
+
         array_add_size_count(&data->scope_tables, -1);
 
         //int var_item_count  = get_array_count(data->function_table.var_items);
@@ -1718,14 +1802,23 @@ void parse_declaration_var(Parse_Data *data, Function_Table_Item *function_item,
     cstr_hash_find(data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items, l_value.expression.factor.var.item.key, hash_index);
     if (hash_index != -1) {
         if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items[hash_index].linkage_type != LINKAGE_TYPE_EXTERNAL ||
-                l_value.expression.factor.var.item.linkage_type != LINKAGE_TYPE_EXTERNAL) 
+                l_value.expression.factor.var.item.linkage_type != LINKAGE_TYPE_EXTERNAL)  {
             ASSERT(0);
-        if (peek_token(*data->tokens, data->token_index + 1, TOKEN_TYPE_EQUAL_SIGN)) 
+        }
+        if (peek_token(*data->tokens, data->token_index + 1, TOKEN_TYPE_EQUAL_SIGN)) {
             ASSERT(0);
+        }
 
-    } else {
-        cstr_hash_add(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items, l_value.expression.factor.var.item);
+    } 
+
+    int scope_index = (get_array_count(data->scope_tables)) -1;
+    cstr_hash_find(data->scope_tables[scope_index].function_items, l_value.expression.factor.var.item.key, hash_index);
+    if (hash_index != -1) {
+            ASSERT(0);
     }
+        
+    cstr_hash_add(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items, l_value.expression.factor.var.item);
+    
 
     data->token_index += 1;
     if (peek_token(*data->tokens, data->token_index, TOKEN_TYPE_EQUAL_SIGN)) {
@@ -1742,7 +1835,7 @@ void parse_declaration_var(Parse_Data *data, Function_Table_Item *function_item,
 
 }
 
-bool peek_declaration(Type *valid_type_items, Token *tokens, int token_index) {
+bool peek_declaration_var(Type *valid_type_items, Token *tokens, int token_index) {
     bool declaration = false;
     bool type = peek_token(tokens , token_index, TOKEN_TYPE_IDENTIFIER );
     if (type) {
@@ -1768,8 +1861,39 @@ bool peek_declaration(Type *valid_type_items, Token *tokens, int token_index) {
         }
 
         token_index_offset += 1;
-        declaration = tokens[token_index + token_index_offset].type == TOKEN_TYPE_SEMICOLON || 
-                      tokens[token_index + token_index_offset].type == TOKEN_TYPE_EQUAL_SIGN;
+        declaration = tokens[token_index + token_index_offset].type == TOKEN_TYPE_SEMICOLON || tokens[token_index + token_index_offset].type == TOKEN_TYPE_EQUAL_SIGN;
+    }
+exit:
+    return declaration;
+}
+
+bool peek_declaration_function(Type *valid_type_items, Token *tokens, int token_index) {
+    bool declaration = false;
+    bool type = peek_token(tokens , token_index, TOKEN_TYPE_IDENTIFIER );
+    if (type) {
+        int token_index_offset = 0;
+        for (int i = 0; i < ARRAY_COUNT(linkage_names); ++i) {
+            if (str_equals_cstr(tokens[token_index].identifier, linkage_names[i])) {
+                token_index_offset += 1;
+                break;
+            }
+        }
+        char *type_name = str_convert_to_cstr(tokens[token_index + token_index_offset].identifier);
+        int hash_index;
+        cstr_hash_find(valid_type_items, type_name, hash_index);
+        if (hash_index == -1)
+            goto exit;
+        token_index_offset += 1;
+        bool var_name =  peek_token(tokens , token_index + token_index_offset, TOKEN_TYPE_IDENTIFIER );
+        if (!var_name)
+            goto exit;
+        for (int i = 0; i < ARRAY_COUNT(invalid_var_names); ++i) {
+            if (str_equals_cstr(tokens[token_index + token_index_offset].identifier, invalid_var_names[i]))
+                ASSERT(0);
+        }
+
+        token_index_offset += 1;
+        declaration = tokens[token_index + token_index_offset].type == TOKEN_TYPE_OPEN_PAREN;
     }
 exit:
     return declaration;
@@ -1783,24 +1907,30 @@ void parse_block_items(Parse_Data *data, Function_Table_Item *function_item, Par
 
     while (! peek_token(*data->tokens, data->token_index, TOKEN_TYPE_CLOSE_BRACKET)) {
         while(peek_parse_typedef(&data->scope_tables[(get_array_count(data->scope_tables)) -1], *data->tokens, &data->token_index));
-        bool declaration = peek_declaration(data->global_table.valid_type_items, *data->tokens, data->token_index);
-        if (declaration) {
-            int hash_index ;
-            char *key = str_convert_to_cstr((*data->tokens)[data->token_index].identifier);
-            cstr_hash_find(data->global_table.valid_type_items,  key,  hash_index);
+        bool var_declaration = peek_declaration_var(data->global_table.valid_type_items, *data->tokens, data->token_index);
+        bool function_declaration = peek_declaration_function(data->global_table.valid_type_items, *data->tokens, data->token_index);
+        if (var_declaration) {
+                int hash_index ;
+                char *key = str_convert_to_cstr((*data->tokens)[data->token_index].identifier);
+                cstr_hash_find(data->global_table.valid_type_items,  key,  hash_index);
 
-            if (hash_index == -1) {
-                cstr_hash_find(data->scope_tables[(get_array_count(data->scope_tables)) -1].typedef_items,  key,  hash_index);
-                if (hash_index == -1) 
-                    ASSERT(0);
-                Typedef_Table_Item item = data->scope_tables[(get_array_count(data->scope_tables)) -1].typedef_items[hash_index];
-                (*data->tokens)[data->token_index].identifier =  str_create_from_cstr(item.key);
-            }
+                if (hash_index == -1) {
+                    cstr_hash_find(data->scope_tables[(get_array_count(data->scope_tables)) -1].typedef_items,  key,  hash_index);
+                    if (hash_index == -1) 
+                        ASSERT(0);
+                    Typedef_Table_Item item = data->scope_tables[(get_array_count(data->scope_tables)) -1].typedef_items[hash_index];
+                    (*data->tokens)[data->token_index].identifier =  str_create_from_cstr(item.key);
+                }
 
 
-            parse_declaration_var(data,function_item, root);
+                parse_declaration_var(data,function_item, root);
+            
 
-        }else {
+        }else if (function_declaration) {
+                int current_scope_table = get_array_count(data->scope_tables) -1;
+                parse_function_declaration(data, &data->scope_tables[current_scope_table]);
+        }else{
+
             parse_statement(data, function_item, root);
         }
 
@@ -1823,10 +1953,12 @@ void insert_function_table(Parse_Table *global_table, Function_Table_Item *funct
             if (!cstr_equals_cstr(function->params[i].parameter.type.key , global_table->function_items[hash_index].params[i].parameter.type.key))
                 ASSERT(0);
         }
-        array_free(&global_table->function_items[hash_index].params);
-
 
         if (function->block_items) {
+            if (function->params != global_table->function_items[hash_index].params) {
+                array_free(&global_table->function_items[hash_index].params);
+            }
+
             ASSERT(!global_table->function_items[hash_index].block_items);
             char *key = global_table->function_items[hash_index].key;
             //printf(" KE_ %s\n",global_table->function_items[hash_index].key );
@@ -1842,7 +1974,7 @@ void insert_function_table(Parse_Table *global_table, Function_Table_Item *funct
 
 
 
-void parse_function_declaration(Parse_Data *data) 
+void parse_function_declaration(Parse_Data *data, Parse_Table *current_scope_table) 
 {
     if (!peek_token(*data->tokens, data->token_index, TOKEN_TYPE_IDENTIFIER)) {
         FAIL_MSG("expected function return type\n");
@@ -1861,7 +1993,7 @@ void parse_function_declaration(Parse_Data *data)
         FAIL_MSG( "expected function return type\n");
     }
     char *function_name = str_convert_to_cstr( (*data->tokens)[data->token_index].identifier);
-    cstr_hash_find(data->global_table.valid_type_items, function_name, hash_index);
+    //cstr_hash_find(data->global_table.valid_type_items, function_name, hash_index);
     function_item.key  = function_name;
     ++(data->token_index);
 
@@ -1885,6 +2017,11 @@ void parse_function_declaration(Parse_Data *data)
 
                 ASSERT(peek_token(*data->tokens, data->token_index, TOKEN_TYPE_IDENTIFIER));
                 param.parameter.name = str_clone((*data->tokens)[data->token_index].identifier);
+                int param_count = get_array_count(function_item.params);
+                for (int i =0 ; i  < param_count; ++i) {
+                    ASSERT(!str_equals_str(param.parameter.name, function_item.params[i].parameter.name));
+
+                }
                 array_append(&function_item.params, param);
                 ++(data->token_index);
                 if (peek_token(*data->tokens, data->token_index, TOKEN_TYPE_CLOSE_PAREN)) {
@@ -1905,10 +2042,16 @@ void parse_function_declaration(Parse_Data *data)
         FAIL_MSG("expected function ( \n");
     }
     ++(data->token_index);
+    cstr_hash_find(current_scope_table->var_items, function_name, hash_index);
+    ASSERT(hash_index == -1);
+
+    insert_function_table(current_scope_table, &function_item);
     if (peek_token(*data->tokens, data->token_index, TOKEN_TYPE_SEMICOLON)) {
-        insert_function_table(&data->global_table, &function_item);
         data->token_index += 1;
         goto exit;
+    }
+    if (current_scope_table != &data->global_table) {
+        ASSERT(0);
     }
 
 
@@ -1936,9 +2079,18 @@ void parse_function_declaration(Parse_Data *data)
 
 
     parse_block_items( data, &function_item, &function_item.block_items);
-    if (data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items)
-        cstr_hash_free(&data->scope_tables[(get_array_count(data->scope_tables)) -1].var_items);
-    array_free(&data->scope_tables);
+    int scope_index = (get_array_count(data->scope_tables)) -1;
+    free_scope_data(&data->scope_tables[scope_index]);
+    //array_free(&data->scope_tables);
+    int scope_count = get_array_count(data->scope_tables);
+    for (int scope_i = 0; scope_i < scope_count; ++scope_i) {
+        Parse_Table *table = &data->scope_tables[scope_i];
+
+            free_scope_data(table);
+    }
+
+   //     array _free(&data->scope_tables);
+        array_free(&data->scope_tables);
 
     insert_function_table(&data->global_table, &function_item);
 
@@ -1965,7 +2117,7 @@ Parse_Node *parse_tokens( Token **tokens)
 
     int total_tokens = get_array_count(*program.program.data.tokens);
     while (total_tokens != program.program.data.token_index) {
-        parse_function_declaration(&program.program.data);
+        parse_function_declaration(&program.program.data, &program.program.data.global_table);
         total_tokens = get_array_count(*program.program.data.tokens);
     }
 

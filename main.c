@@ -1,3 +1,4 @@
+//const char* __asan_default_options() { return "detect_leaks=0"; }
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -18,41 +19,30 @@ int main(int argc, char**argv)
     setvbuf(stdout, NULL, _IONBF, 0);
     arena_init();
     String input_name = {0};
-    String output_name = {0};
+    //String output_name = {0};
     bool output_object_file = false;
     if (argc == 1) {
         input_name = str_create_from_cstr("input.c");
     } else {
-        int current_argc = 1;
-        for (int i = 1; i <argc; ++i) {
-            String_View arg = sv_from_cstr(argv[i]);
-            if (sv_equals_cstr(arg, "-c")) {
-                output_object_file =true;
-                i += 1;
-                ASSERT(i < argc);
-                input_name =str_create_from_cstr(argv[i]); 
+        int i = 1;
+        String_View arg = sv_from_cstr(argv[i]);
+        if (sv_equals_cstr(arg, "-c")) {
+            output_object_file =true;
+            i += 1;
+            ASSERT(i < argc);
+       //     input_name =str_create_from_cstr(argv[i]); 
 
-                i += 1;
-                ASSERT(i < argc);
-                output_name =str_create_from_cstr(argv[i]); 
-                continue;
+            //    i += 1;
+            //    ASSERT(i < argc);
+            //    output_name =str_create_from_cstr(argv[i]); 
+            //    continue;
 
-            }
-            input_name = str_create_from_cstr(argv[i]);
-        }
-    }
-    if (output_object_file) {
-        printf("Object File Create\n");
-        String command = str_create_from_cstr("gcc -c ");
-        str_append_str(&command, input_name);
-        str_append_cstr(&command, " ");
-        str_append_str(&command, output_name);
-        char *cstr_command = str_convert_to_cstr(command);
-        system(cstr_command);
-        arena_deinit();
-        return 0;
+        } 
+        input_name = str_create_from_cstr(argv[i]);
     }
 
+
+    String output_name = {0};
     String input_dir = ZERO_STRUCT;
     String_View input_name_sv = sv_from_str(input_name);
     String_View input_filename_head  = sv_chop_delim(&input_name_sv, '.');
@@ -72,6 +62,16 @@ int main(int argc, char**argv)
 
     emmit_code( assembly_nodes, output_name);
 
+    if (output_object_file) {
+        printf("Object File Create\n");
+        String command = str_create_from_cstr("gcc -c ");
+        str_append_str(&command, input_name);
+        str_append_cstr(&command, " -o ");
+        str_append_sv(&command, input_filename_head);
+        str_append_cstr(&command, ".o ");
+        char *cstr_command = str_convert_to_cstr(command);
+        system(cstr_command);
+    }
 
     free_tokens(tokens);
     free_parse_nodes(parse_nodes);

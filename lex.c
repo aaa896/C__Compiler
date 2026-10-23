@@ -156,7 +156,7 @@ Token * lex_program( String path)
         } else if (program.data[i] == '\n') {
             row +=1;
             col = 0;
-        } else if (isalpha(program.data[i])) {
+        } else if (isalpha(program.data[i]) || program.data[i] == '_') {
             Token token  = ZERO_STRUCT;
             token.type = TOKEN_TYPE_IDENTIFIER;
             String_View identifier = ZERO_STRUCT;
@@ -165,10 +165,10 @@ Token * lex_program( String path)
 
             for (; identifier.count + i < program.size; ++identifier.count) {
 
-                if (!isalnum(program.data[i + identifier.count])) {
+                if (!isalnum(program.data[i + identifier.count]) && program.data[i + identifier.count] != '_') {
 
 
-            String str = str_create_from_sv(identifier);
+                    String str = str_create_from_sv(identifier);
                     if (!str_equals_cstr(str, "default")) {
                         if (program.data[i + identifier.count] == ':') {
                             token.type = TOKEN_TYPE_LABEL;
@@ -243,6 +243,7 @@ Token * lex_program( String path)
                     }
                     if (peek_char(&program, i, '*')) {
                         if (peek_char(&program, i + 1, '/')) {
+                            i +=1;
                             break;
                         }
                     }
@@ -265,12 +266,12 @@ Token * lex_program( String path)
             array_append(&tokens, token);
         }else if (program.data[i] == '%') {
             Token token = ZERO_STRUCT;
-                        if (peek_char(&program, i + 1, '=')) {
+            if (peek_char(&program, i + 1, '=')) {
                 token.type = TOKEN_TYPE_PERCENT_EQUAL;
                 i += 1;
-                        } else {
-            token.type = TOKEN_TYPE_PERCENT;
-                        }
+            } else {
+                token.type = TOKEN_TYPE_PERCENT;
+            }
             array_append(&tokens, token);
 
         }else if (program.data[i] == '*') {
